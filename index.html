@@ -553,12 +553,26 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
     <div class="fg"><label>Week of</label><input type="date" id="e-date"></div>
     <div class="fg"><label>Company / Asset</label><input type="text" id="e-company" placeholder="e.g. Micron Technology"></div>
     <div class="fg"><label>TR Gain (€) <span style="color:var(--t3);font-weight:400;font-size:11px;">from Performance screen</span></label><input type="number" id="e-pnl" placeholder="e.g. 12218.60" step="0.01" oninput="updateNetPreview()"></div>
-    <div class="fg"><label>Tax & fees (€) <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label><input type="number" id="e-tax" placeholder="e.g. 3223.65" step="0.01" oninput="updateNetPreview()"></div>
-    <!-- Net profit preview -->
+    <!-- Auto tax preview -->
     <div id="net-preview" style="display:none;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r2);padding:12px 14px;margin-bottom:4px;">
-      <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Net profit (toward 100k goal)</div>
-      <div id="net-preview-val" style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;"></div>
-      <div id="net-preview-breakdown" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:3px;"></div>
+      <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Auto calculation</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
+        <span style="color:var(--t3);">TR Gain</span><span id="preview-gross" style="color:var(--t1);"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
+        <span style="color:var(--t3);">Kapitalertragsteuer 25%</span><span id="preview-ket" style="color:var(--red);"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
+        <span style="color:var(--t3);">Solidaritätszuschlag 1.375%</span><span id="preview-soli" style="color:var(--red);"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:8px;">
+        <span style="color:var(--t3);">Fee</span><span style="color:var(--red);">−€1.00</span>
+      </div>
+      <div style="height:0.5px;background:var(--line2);margin-bottom:8px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;">Net profit</span>
+        <span id="net-preview-val" style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;"></span>
+      </div>
     </div>
     <div class="fg"><label>Trade details <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label><input type="text" id="e-note" placeholder="e.g. Call 320$ · 1,000 warrants"></div>
     <div class="modal-footer">
@@ -711,23 +725,27 @@ function openAddPosition(){
   openModal('modal-position');
 }
 function openAddDividend(){openModal('modal-dividend');}
+const KET_RATE=0.25, SOLI_RATE=0.055, FEE=1.0;
+function calcTax(gain){
+  const ket=parseFloat((gain*KET_RATE).toFixed(2));
+  const soli=parseFloat((ket*SOLI_RATE).toFixed(2));
+  const total=parseFloat((ket+soli+FEE).toFixed(2));
+  const net=parseFloat((gain-total).toFixed(2));
+  return {ket,soli,total,net};
+}
+
 function updateNetPreview(){
   const pnl=parseFloat(document.getElementById('e-pnl').value)||0;
-  const tax=parseFloat(document.getElementById('e-tax').value)||0;
   const preview=document.getElementById('net-preview');
-  const val=document.getElementById('net-preview-val');
-  const breakdown=document.getElementById('net-preview-breakdown');
   if(pnl===0){preview.style.display='none';return;}
-  const net=parseFloat((pnl-tax).toFixed(2));
+  const {ket,soli,net}=calcTax(pnl);
   preview.style.display='block';
+  document.getElementById('preview-gross').textContent=fmtE(pnl,false);
+  document.getElementById('preview-ket').textContent='−'+fmtE(ket,false);
+  document.getElementById('preview-soli').textContent='−'+fmtE(soli,false);
+  const val=document.getElementById('net-preview-val');
   val.textContent=fmtE(net);
   val.style.color=net>=0?'var(--grn)':'var(--red)';
-  if(tax>0){
-    breakdown.textContent='TR gain '+fmtE(pnl,false)+' − tax & fees '+fmtE(tax,false);
-  } else {
-    breakdown.textContent='No tax entered — add tax & fees to see real net profit';
-    breakdown.style.color='var(--amb)';
-  }
 }
 
 function openAddEntry(){
@@ -747,7 +765,6 @@ function editEntry(id){
   document.getElementById('e-date').value=e.date;
   document.getElementById('e-company').value=e.company||'';
   document.getElementById('e-pnl').value=e.pnl;
-  document.getElementById('e-tax').value=e.tax||'';
   document.getElementById('e-note').value=e.note||'';
   updateNetPreview();
   openModal('modal-entry');
@@ -837,11 +854,10 @@ async function saveDividend(){
 async function saveEntry(){
   const date=document.getElementById('e-date').value;
   const pnl=parseFloat(document.getElementById('e-pnl').value);
-  const tax=parseFloat(document.getElementById('e-tax').value)||0;
   const company=document.getElementById('e-company').value.trim();
   const note=document.getElementById('e-note').value.trim();
-  if(!date||isNaN(pnl)){toast('Please enter date and gross gain');return;}
-  const net=parseFloat((pnl-tax).toFixed(2));
+  if(!date||isNaN(pnl)){toast('Please enter date and TR gain');return;}
+  const {ket,soli,total:tax,net}=calcTax(pnl);
   toast('Saving…',10000);
   try{
     if(editEntryId){
@@ -858,9 +874,9 @@ async function saveEntry(){
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       render();closeModal('modal-entry');
       document.getElementById('e-pnl').value='';
-      document.getElementById('e-tax').value='';
       document.getElementById('e-company').value='';
       document.getElementById('e-note').value='';
+      document.getElementById('net-preview').style.display='none';
       toast('Entry added ✓');
     }
   }catch(err){toast('⚠ '+err.message,5000);}
@@ -1124,7 +1140,7 @@ function renderHistory(){
           <div class="hdate">${e.date}</div>
           ${e.company?`<div class="hnote" style="color:var(--t2);font-weight:600;">${e.company}</div>`:''}
           ${e.note?`<div class="hnote">${e.note}</div>`:''}
-          ${hasTax?`<div class="hnote" style="color:var(--t3);">proceeds ${fmtE(e.pnl)} · tax & fees −${fmtE(e.tax,false)}</div>`:''}
+          ${e.pnl?`<div class="hnote" style="color:var(--t3);">gain ${fmtE(e.pnl,false)} · tax & fees −${fmtE(e.tax||parseFloat((e.pnl*0.26375+1).toFixed(2)),false)}</div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;margin-right:8px;">
           <div class="hpnl" style="color:${net>=0?'var(--grn)':'var(--red)'}">${fmtE(net)}</div>
