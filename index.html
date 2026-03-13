@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TR Pro">
@@ -24,7 +24,7 @@
   --r:12px; --r2:8px;
   --sidebar:240px;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}button,input,select{touch-action:manipulation;}
 html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;}
 
 /* ── LAYOUT ── */
@@ -68,6 +68,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .mnav-btn{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--t3);font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;transition:color 0.15s;}
 .mnav-btn svg{width:19px;height:19px;}
 .mnav-btn.active{color:var(--grn);}
+.mnav-btn,.snav-btn,.btn-primary,.btn-ghost,.icon-btn,.cat-btn{touch-action:manipulation;}
 
 /* MOBILE LAYOUT */
 @media(max-width:768px){
@@ -499,12 +500,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
             <div class="srow"><div><div class="sl">Year</div><div class="ss">Tracking year</div></div><input type="number" id="s-year" step="1" style="width:100px;" placeholder="2026"></div>
             <div style="margin-top:14px;"><button class="btn-primary" onclick="saveSettings()">Save settings</button></div>
           </div>
-          <div class="card" style="margin-top:12px;">
-            <div class="card-label">Freistellungsauftrag</div>
-            <div class="srow"><div><div class="sl">Tax-free allowance</div><div class="ss">Annual limit (€1,000 single / €2,000 couples)</div></div><input type="number" id="s-fsa" step="100" placeholder="1000"></div>
-            <div id="fsa-status" style="margin-top:10px;padding:10px 12px;border-radius:var(--r2);background:var(--bg3);font-size:11px;font-family:'JetBrains Mono',monospace;"></div>
-            <div style="margin-top:10px;font-size:11px;color:var(--t3);">First €1,000 of gains/year are tax-free. The app tracks how much allowance you've used so far this year.</div>
-          </div>
+
 
           <div class="card" style="margin-top:12px;">
             <div class="card-label">Data management</div>
@@ -824,7 +820,7 @@ async function sbDelete(table,id){
 }
 
 let entries=[], positions=[], dividends=[];
-let goal={total:100000,monthly:10000,deadline:'2026-12-31',fsa:1000,year:2026};
+let goal={total:100000,monthly:10000,deadline:'2026-12-31',year:2026};
 let editPosId=null, editEntryId=null, posFilter='all', loading=true;
 
 const iso=d=>d.toISOString().split('T')[0];
@@ -857,11 +853,10 @@ async function loadAll(){
     entries=e.map(x=>({id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade'}));
     positions=p.map(x=>({id:x.id,ticker:x.ticker,name:x.name,type:x.type,shares:parseFloat(x.shares),avg:parseFloat(x.avg_price),current:parseFloat(x.current_price)}));
     dividends=d.map(x=>({id:x.id,ticker:x.ticker,amount:parseFloat(x.amount),date:x.date,note:x.note||''}));
-    if(g&&g.length){goal={total:parseFloat(g[0].total),monthly:parseFloat(g[0].monthly),deadline:g[0].deadline,fsa:parseFloat(g[0].fsa||1000),year:parseInt(g[0].year||2026)};}
+    if(g&&g.length){goal={total:parseFloat(g[0].total),monthly:parseFloat(g[0].monthly),deadline:g[0].deadline,year:parseInt(g[0].year||2026)};}
     document.getElementById('s-total').value=goal.total;
     document.getElementById('s-monthly').value=goal.monthly;
     document.getElementById('s-deadline').value=goal.deadline;
-    document.getElementById('s-fsa').value=goal.fsa||1000;
     document.getElementById('s-year').value=goal.year||2026;
     hideLoading();render();
   }catch(err){
@@ -1123,13 +1118,12 @@ async function saveSettings(){
   const t=parseFloat(document.getElementById('s-total').value);
   const m=parseFloat(document.getElementById('s-monthly').value);
   const d=document.getElementById('s-deadline').value;
-  const fsa=parseFloat(document.getElementById('s-fsa').value)||1000;
   const yr=parseInt(document.getElementById('s-year').value)||2026;
   if(!t||!m||!d){toast('Fill in all fields');return;}
-  goal={total:t,monthly:m,deadline:d,fsa,year:yr};
+  goal={total:t,monthly:m,deadline:d,year:yr};
   toast('Saving…',10000);
   try{
-    await sbUpdate('goal',1,{total:t,monthly:m,deadline:d,fsa,year:yr});
+    await sbUpdate('goal',1,{total:t,monthly:m,deadline:d,year:yr});
     render();toast('Settings saved ✓');
   }catch(err){toast('⚠ '+err.message,5000);}
 }
@@ -1194,18 +1188,7 @@ function renderDashboard(){
   document.getElementById('d-goal-remaining').textContent=fmtE(Math.max(0,goal.total-totalRealPnL),false)+' left';
   document.getElementById('d-goal-deadline').textContent='by '+goal.deadline;
   document.getElementById('sf-goal-text').textContent=fmtE(totalRealPnL,false)+' / '+goal.total.toLocaleString('de-DE')+' €';
-  // FSA tracker
-  const fsaEl=document.getElementById('fsa-status');
-  if(fsaEl){
-    const yearEntries=sorted.filter(e=>e.date.startsWith(String(goal.year||2026)));
-    const yearGross=yearEntries.filter(e=>e.category==='trade'||!e.category).reduce((s,e)=>s+e.pnl,0);
-    const fsaLimit=goal.fsa||1000;
-    const fsaUsed=Math.min(yearGross,fsaLimit);
-    const fsaLeft=Math.max(0,fsaLimit-yearGross);
-    const fsaPct=Math.min(100,(yearGross/fsaLimit)*100);
-    const fsaColor=fsaLeft>0?'var(--grn)':'var(--red)';
-    fsaEl.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--t2);">Used ${fmtE(Math.min(yearGross,fsaLimit),false)} of ${fmtE(fsaLimit,false)}</span><span style="color:${fsaColor};">${fsaLeft>0?fmtE(fsaLeft,false)+' remaining':'Fully used'}</span></div><div style="height:4px;background:var(--bg4);border-radius:99px;overflow:hidden;"><div style="height:4px;border-radius:99px;background:${fsaColor};width:${fsaPct.toFixed(1)}%;"></div></div>`;
-  }
+
   document.getElementById('sf-bar').style.width=pct.toFixed(1)+'%';
   document.getElementById('sf-bar').style.background=bc;
 
@@ -1251,20 +1234,45 @@ function renderDashboard(){
     ['Tax corrections',fmtE(taxCorrections),'var(--amb)'],
   ].map(([l,v,c])=>`<div class="mcard"><div class="ml">${l}</div><div class="mv" style="color:${c}">${v}</div></div>`).join('');
 
-  // Monthly target progress bar
+  // Monthly target card - redesigned
   const mtEl=document.getElementById('d-monthly-target');
   if(mtEl){
-    mtEl.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <span style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;">This month vs target</span>
-      <span style="font-size:12px;font-family:'JetBrains Mono',monospace;color:${monthColor};">${fmtE(currentMonthNet)} / ${fmtE(goal.monthly,false)}</span>
-    </div>
-    <div style="height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;">
-      <div style="height:6px;border-radius:99px;background:${monthColor};width:${monthPct.toFixed(1)}%;transition:width 0.5s;"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">
-      <span>${monthPct.toFixed(0)}% of monthly target</span>
-      <span>${fmtE(Math.max(0,goal.monthly-currentMonthNet),false)} remaining</span>
-    </div>`;
+    const over=currentMonthNet>goal.monthly;
+    const diff=Math.abs(currentMonthNet-goal.monthly);
+    // Bar: actual vs target - allow overflow past target marker
+    const barMax=Math.max(currentMonthNet,goal.monthly)*1.15;
+    const actualPct=Math.min(100,(currentMonthNet/barMax)*100);
+    const targetPct=Math.min(99,(goal.monthly/barMax)*100);
+    const fullMonthName=['January','February','March','April','May','June','July','August','September','October','November','December'][new Date().getMonth()];
+    mtEl.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div>
+          <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${fullMonthName} ${goal.year||2026}</div>
+          <div style="font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:${monthColor};">${fmtE(currentMonthNet)}</div>
+          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:3px;">
+            ${over
+              ? `<span style="color:var(--grn);">+${fmtE(diff,false)} above target 🎯</span>`
+              : `<span style="color:var(--t3);">${fmtE(diff,false)} to reach target</span>`
+            }
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Monthly target</div>
+          <div style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--t2);">${fmtE(goal.monthly,false)}</div>
+          <div style="font-size:10px;margin-top:3px;font-family:'JetBrains Mono',monospace;color:${monthColor};">${monthPct.toFixed(0)}%${over?' ✓':''}</div>
+        </div>
+      </div>
+      <div style="position:relative;height:8px;background:var(--bg3);border-radius:99px;">
+        <!-- Actual bar -->
+        <div style="position:absolute;left:0;top:0;height:8px;border-radius:99px;background:${monthColor};width:${actualPct.toFixed(1)}%;transition:width 0.6s cubic-bezier(.4,0,.2,1);"></div>
+        <!-- Target marker line -->
+        <div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--amb);border-radius:2px;left:${targetPct.toFixed(1)}%;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">
+        <span>€0</span>
+        <span style="color:var(--amb);">▲ target ${fmtE(goal.monthly,false)}</span>
+        ${over?`<span style="color:var(--grn);">actual ${fmtE(currentMonthNet,false)}</span>`:'<span></span>'}
+      </div>`;
   }
 
   const labels=sorted.map(e=>e.date);
