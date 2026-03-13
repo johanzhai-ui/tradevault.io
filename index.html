@@ -63,18 +63,19 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .dash-grid-full{margin-bottom:14px;}
 .metrics-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
 
-/* MOBILE BOTTOM NAV */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,10,15,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:0.5px solid var(--line);z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
-.mobile-nav-inner{display:flex;max-width:480px;margin:0 auto;}
-.mnav-btn{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--t3);font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;transition:color 0.15s;}
-.mnav-btn svg{width:19px;height:19px;}
-.mnav-btn.active{color:var(--grn);}
+/* MOBILE BOTTOM NAV — floating pill */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;padding:0 16px calc(16px + env(safe-area-inset-bottom,0px));pointer-events:none;}
+.mobile-nav-inner{display:flex;align-items:center;justify-content:center;background:rgba(20,24,32,0.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:0.5px solid rgba(255,255,255,0.1);border-radius:99px;padding:6px 8px;gap:2px;pointer-events:all;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 18px;cursor:pointer;border:none;background:none;color:var(--t3);font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.2s;border-radius:99px;min-width:64px;}
+.mnav-btn svg{width:18px;height:18px;transition:transform 0.2s;}
+.mnav-btn.active{color:var(--grn);background:var(--grn2);}
+.mnav-btn.active svg{transform:scale(1.1);}
 .mnav-btn,.snav-btn,.btn-primary,.btn-ghost,.icon-btn,.cat-btn{touch-action:manipulation;}
 
 /* MOBILE LAYOUT */
 @media(max-width:768px){
   .sidebar{display:none;}
-  .main{margin-left:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
+  .main{margin-left:0;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));}
   .main-inner{padding:0 0 20px;}
   .mobile-nav{display:block;}
   .desktop-topbar{display:none;}
@@ -210,6 +211,11 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .hpnl{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
 /* Month group */
 .month-group{margin-bottom:10px;}
+.week-group{margin-bottom:4px;border-radius:var(--r2);overflow:hidden;}
+.week-header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;}
+.week-header:hover{border-color:var(--line2);}
+.week-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
+.month-entries.open{display:block!important;}
 .month-header{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;}
 .month-header:hover{border-color:var(--line2);}
 .month-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
@@ -277,7 +283,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .streak-lbl{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-top:5px;}
 
 /* TOAST */
-.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--grn);color:#000;font-family:'JetBrains Mono',monospace;font-weight:500;border-radius:99px;padding:11px 22px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;z-index:400;white-space:nowrap;}
+.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--grn);color:#000;font-family:'JetBrains Mono',monospace;font-weight:500;border-radius:99px;padding:11px 22px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;z-index:400;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 @media(min-width:769px){.toast{bottom:28px;}}
 
@@ -1344,14 +1350,34 @@ function renderPnL(){
   }).join('');
 }
 
-function toggleMonth(key){
-  const entries_el=document.getElementById('month-entries-'+key);
-  const chevron=document.getElementById('month-chevron-'+key);
-  const header=document.getElementById('month-header-'+key);
-  const isOpen=entries_el.classList.contains('open');
-  entries_el.classList.toggle('open',!isOpen);
-  chevron.classList.toggle('open',!isOpen);
-  header.classList.toggle('open',!isOpen);
+// Get ISO week number
+function getWeekNum(dateStr){
+  const d=new Date(dateStr);
+  const jan4=new Date(d.getFullYear(),0,4);
+  const startOfWeek1=new Date(jan4);
+  startOfWeek1.setDate(jan4.getDate()-(jan4.getDay()||7)+1);
+  const diff=d-startOfWeek1;
+  const weekNum=Math.ceil((diff/86400000+1)/7);
+  if(weekNum<1){const dec28=new Date(d.getFullYear()-1,11,28);return getWeekNum(dec28.toISOString().slice(0,10));}
+  return {week:weekNum,year:d.getFullYear()};
+}
+function getWeekRange(weekNum,year){
+  const jan4=new Date(year,0,4);
+  const s1=new Date(jan4);s1.setDate(jan4.getDate()-(jan4.getDay()||7)+1);
+  const start=new Date(s1);start.setDate(s1.getDate()+(weekNum-1)*7);
+  const end=new Date(start);end.setDate(start.getDate()+6);
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${start.getDate()} ${mn[start.getMonth()]}–${end.getDate()} ${mn[end.getMonth()]}`;
+}
+function toggleSection(id){
+  const el=document.getElementById('sec-entries-'+id);
+  const chevron=document.getElementById('sec-chevron-'+id);
+  const header=document.getElementById('sec-header-'+id);
+  if(!el)return;
+  const isOpen=el.classList.contains('open');
+  el.classList.toggle('open',!isOpen);
+  if(chevron)chevron.classList.toggle('open',!isOpen);
+  if(header)header.classList.toggle('open',!isOpen);
 }
 
 function renderHistory(){
@@ -1360,36 +1386,16 @@ function renderHistory(){
   const hl=document.getElementById('h-list'),he=document.getElementById('h-empty');
   if(!sorted.length){hl.innerHTML='';he.style.display='block';return;}
   he.style.display='none';
-
-  // Build cumulative map (ascending)
   let c=0;const cumMap={};
-  [...entries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
-    c+=(e.net_pnl!=null?e.net_pnl:e.pnl);
-    cumMap[e.id]=parseFloat(c.toFixed(2));
-  });
+  [...entries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{c+=(e.net_pnl!=null?e.net_pnl:e.pnl);cumMap[e.id]=parseFloat(c.toFixed(2));});
+  const currentMK=iso(new Date()).slice(0,7);
+  const nowWI=getWeekNum(iso(new Date()));
+  const monthGroups={};
+  sorted.forEach(e=>{const mk=monthKey(e.date);if(!monthGroups[mk])monthGroups[mk]=[];monthGroups[mk].push(e);});
 
-  // Group by month (descending)
-  const groups={};
-  sorted.forEach(e=>{
-    const k=monthKey(e.date);
-    if(!groups[k])groups[k]=[];
-    groups[k].push(e);
-  });
-  const currentMonthKey=iso(new Date()).slice(0,7);
-
-  hl.innerHTML=Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(k=>{
-    const monthEntries=groups[k];
-    const monthNet=parseFloat(monthEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
-    const wins=monthEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length;
-    const losses=monthEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<0).length;
-    const isOpen=k===currentMonthKey;
-    const netColor=monthNet>=0?'var(--grn)':'var(--red)';
-    const fullMonthName=['January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(k.slice(5))-1];
-
-    const rows=monthEntries.map(e=>{
-      const net=e.net_pnl!=null?e.net_pnl:e.pnl;
-      const hasTax=e.tax&&e.tax>0;
-      return `<div class="swipe-wrap" id="swipe-${e.id}">
+  function renderEntry(e){
+    const net=e.net_pnl!=null?e.net_pnl:e.pnl;
+    return `<div class="swipe-wrap" id="swipe-${e.id}">
       <div class="swipe-delete-bg" onclick="deleteEntry('${e.id}')">Delete</div>
       <div class="swipe-content hrow" id="swipe-content-${e.id}" ontouchstart="swipeStart(event,'${e.id}')" ontouchmove="swipeMove(event,'${e.id}')" ontouchend="swipeEnd(event,'${e.id}')">
         <div class="hdot" style="background:${net>=0?'var(--grn)':'var(--red)'}"></div>
@@ -1412,76 +1418,49 @@ function renderHistory(){
         </div>
       </div>
     </div>`;
-    }).join('');
+  }
 
+  hl.innerHTML=Object.keys(monthGroups).sort((a,b)=>b.localeCompare(a)).map(mk=>{
+    const mEntries=monthGroups[mk];
+    const mNet=parseFloat(mEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+    const wins=mEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length;
+    const losses=mEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<0).length;
+    const isMOpen=mk===currentMK;
+    const mColor=mNet>=0?'var(--grn)':'var(--red)';
+    const mName=['January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mk.slice(5))-1];
+    // Group by week
+    const wkGroups={};
+    mEntries.forEach(e=>{const wi=getWeekNum(e.date);const wk=`${wi.year}-W${String(wi.week).padStart(2,'0')}`;if(!wkGroups[wk])wkGroups[wk]=[];wkGroups[wk].push(e);});
+    const weekHTML=Object.keys(wkGroups).sort((a,b)=>b.localeCompare(a)).map(wk=>{
+      const wE=wkGroups[wk];
+      const wNet=parseFloat(wE.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+      const wColor=wNet>=0?'var(--grn)':'var(--red)';
+      const wNum=parseInt(wk.split('-W')[1]);
+      const wYear=parseInt(wk.split('-')[0]);
+      const wRange=getWeekRange(wNum,wYear);
+      const wId=wk.replace('-W','_W');
+      const isWOpen=isMOpen&&nowWI.week===wNum&&nowWI.year===wYear;
+      return `<div class="week-group">
+        <div class="week-header${isWOpen?' open':''}" id="sec-header-${wId}" onclick="toggleSection('${wId}')">
+          <svg class="month-chevron${isWOpen?' open':''}" id="sec-chevron-${wId}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="flex:1;"><div style="font-size:12px;font-weight:600;">Week ${wNum}</div><div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:1px;">${wRange}</div></div>
+          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-right:10px;">${wE.length} entr${wE.length!==1?'ies':'y'}</div>
+          <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${wColor};">${fmtE(wNet)}</div>
+        </div>
+        <div class="${isWOpen?'month-entries open':'month-entries'}" id="sec-entries-${wId}">${wE.map(renderEntry).join('')}</div>
+      </div>`;
+    }).join('');
     return `<div class="month-group">
-      <div class="month-header${isOpen?' open':''}" id="month-header-${k}" onclick="toggleMonth('${k}')">
-        <svg class="month-chevron${isOpen?' open':''}" id="month-chevron-${k}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="month-name">${fullMonthName} <span style="color:var(--t3);font-size:11px;font-weight:400;">${k.slice(0,4)}</span></div>
-        <div class="month-meta">${monthEntries.length} trade${monthEntries.length!==1?'s':''} · ${wins}W ${losses}L</div>
-        <div class="month-total" style="color:${netColor}">${fmtE(monthNet)}</div>
+      <div class="month-header${isMOpen?' open':''}" id="sec-header-${mk}" onclick="toggleSection('${mk}')">
+        <svg class="month-chevron${isMOpen?' open':''}" id="sec-chevron-${mk}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="month-name">${mName} <span style="color:var(--t3);font-size:11px;font-weight:400;">${mk.slice(0,4)}</span></div>
+        <div class="month-meta">${mEntries.length} trade${mEntries.length!==1?'s':''} · ${wins}W ${losses}L</div>
+        <div class="month-total" style="color:${mColor}">${fmtE(mNet)}</div>
       </div>
-      <div class="month-entries${isOpen?' open':''}" id="month-entries-${k}">${rows}</div>
+      <div class="${isMOpen?'month-entries open':'month-entries'}" id="sec-entries-${mk}" style="padding:8px;">${weekHTML}</div>
     </div>`;
   }).join('');
 }
-
-// ── SWIPE TO DELETE ──
-let swipeStartX={};
-function swipeStart(e,id){swipeStartX[id]=e.touches[0].clientX;}
-function swipeMove(e,id){
-  const dx=e.touches[0].clientX-swipeStartX[id];
-  const el=document.getElementById('swipe-content-'+id);
-  if(!el)return;
-  if(dx<0)el.style.transform=`translateX(${Math.max(-80,dx)}px)`;
-  else if(el.classList.contains('swiped'))el.style.transform=`translateX(${Math.min(0,-80+dx)}px)`;
-}
-function swipeEnd(e,id){
-  const dx=e.changedTouches[0].clientX-swipeStartX[id];
-  const el=document.getElementById('swipe-content-'+id);
-  if(!el)return;
-  el.style.transform='';
-  document.querySelectorAll('.swipe-content.swiped').forEach(s=>{if(s.id!=='swipe-content-'+id)s.classList.remove('swiped');});
-  if(dx<-40)el.classList.add('swiped');
-  else el.classList.remove('swiped');
-}
-document.addEventListener('touchstart',e=>{
-  if(!e.target.closest('.swipe-wrap')){
-    document.querySelectorAll('.swipe-content.swiped').forEach(s=>s.classList.remove('swiped'));
-  }
-});
-
-// ── STREAK RENDERER ──
-function renderStreak(){
-  const el=document.getElementById('d-streak-content');
-  if(!el)return;
-  const trades=entries.filter(e=>e.category==='trade'||!e.category).sort((a,b)=>a.date.localeCompare(b.date));
-  if(!trades.length){el.innerHTML='<div class="empty" style="padding:16px;">No trades yet</div>';return;}
-  let cur=0,best=0,tmp=0,tmpLose=0,worstLose=0;
-  trades.forEach(e=>{
-    if(e.pnl>0){tmp++;tmpLose=0;}
-    else{tmpLose++;tmp=0;}
-    if(tmp>best)best=tmp;
-    if(tmpLose>worstLose)worstLose=tmpLose;
-  });
-  for(let i=trades.length-1;i>=0;i--){
-    if(i===trades.length-1){cur=trades[i].pnl>0?1:-1;continue;}
-    if(trades[i].pnl>0&&cur>0)cur++;
-    else if(trades[i].pnl<0&&cur<0)cur--;
-    else break;
-  }
-  const wins=trades.filter(e=>e.pnl>0).length;
-  const winRate=trades.length?Math.round(wins/trades.length*100):0;
-  const bestT=trades.reduce((b,e)=>e.pnl>b.pnl?e:b,trades[0]);
-  const curColor=cur>0?'var(--grn)':cur<0?'var(--red)':'var(--t3)';
-  el.innerHTML=`<div class="streak-grid">
-    <div class="streak-item"><div class="streak-num" style="color:${curColor}">${Math.abs(cur)||'—'}</div><div class="streak-lbl">Current streak</div><div style="font-size:10px;color:${curColor};margin-top:3px;font-family:'JetBrains Mono',monospace;">${cur>0?'winning':cur<0?'losing':''}</div></div>
-    <div class="streak-item"><div class="streak-num" style="color:var(--grn)">${best}</div><div class="streak-lbl">Best win streak</div></div>
-    <div class="streak-item"><div class="streak-num" style="color:var(--amb)">${winRate}%</div><div class="streak-lbl">Win rate</div></div>
-    <div class="streak-item"><div class="streak-num" style="color:var(--grn);font-size:18px;">${fmtE(bestT.pnl,false)}</div><div class="streak-lbl">Best trade</div><div style="font-size:10px;color:var(--t3);margin-top:2px;font-family:'JetBrains Mono',monospace;">${bestT.company||bestT.date}</div></div>
-  </div>`;
-}
-
 async function refreshData(){
   const icon=document.getElementById('refresh-icon');
   if(icon)icon.classList.add('spin');
