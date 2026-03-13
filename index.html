@@ -263,6 +263,18 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .empty{text-align:center;padding:36px 20px;color:var(--t3);font-size:12px;font-family:'JetBrains Mono',monospace;line-height:1.8;}
 .empty-icon{font-size:28px;margin-bottom:10px;}
 
+/* SWIPE TO DELETE */
+.swipe-wrap{position:relative;overflow:hidden;border-radius:var(--r2);margin-bottom:0;}
+.swipe-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600;border-radius:0 var(--r2) var(--r2) 0;}
+.swipe-content{position:relative;transition:transform 0.2s ease;background:var(--bg2);}
+.swipe-content.swiped{transform:translateX(-80px);}
+
+/* STREAK CARD */
+.streak-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0;}
+.streak-item{text-align:center;padding:12px 8px;}
+.streak-num{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;}
+.streak-lbl{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-top:5px;}
+
 /* TOAST */
 .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--grn);color:#000;font-family:'JetBrains Mono',monospace;font-weight:500;border-radius:99px;padding:11px 22px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;z-index:400;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -284,10 +296,6 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
       <button class="snav-btn active" onclick="showSec('dashboard',this,'s')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
         Dashboard
-      </button>
-      <button class="snav-btn" onclick="showSec('portfolio',this,'s')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3" stroke-linecap="round"/></svg>
-        Portfolio
       </button>
       <button class="snav-btn" onclick="showSec('pnl',this,'s')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 7 21 7 21 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -316,7 +324,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
     <div class="mobile-topbar">
       <div>
         <h1>TR <em>Pro</em></h1>
-        <div class="tagline" id="m-tagline" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">Portfolio · P&L · Dividends</div>
+        <div class="tagline" id="m-tagline" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">P&L · History · Dashboard</div>
       </div>
       <div style="display:flex;gap:8px;">
         <button class="icon-btn" id="refresh-btn" onclick="refreshData()" title="Sync latest data">
@@ -335,7 +343,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
         <div class="desktop-topbar">
           <div>
             <h2>Dashboard</h2>
-            <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="d-tagline">Portfolio · P&L · Dividends</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="d-tagline">P&L Tracker</div>
           </div>
           <div class="topbar-actions">
             <button class="btn-ghost" id="refresh-btn-desktop" onclick="refreshData()">&#8635; Sync</button>
@@ -380,45 +388,8 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
             <div class="chart-wrap" style="height:200px;"><canvas id="chart-cum"></canvas></div>
           </div>
           <div class="card">
-            <div class="sh"><div class="sh-title">Asset allocation</div><span id="d-pos-count" style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);"></span></div>
-            <div class="chart-wrap" style="height:150px;"><canvas id="chart-alloc"></canvas></div>
-            <div class="alloc-legend" id="alloc-legend"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── PORTFOLIO ── -->
-      <div class="sec" id="sec-portfolio">
-        <div class="desktop-topbar">
-          <h2>Portfolio</h2>
-          <div class="topbar-actions">
-            <button class="btn-ghost" onclick="openAddDividend()">+ Dividend</button>
-            <button class="btn-primary" onclick="openAddPosition()">+ Add position</button>
-          </div>
-        </div>
-
-        <div class="portfolio-grid">
-          <div>
-            <div class="sh" style="margin-bottom:10px;">
-              <div class="tabs">
-                <button class="tab active" onclick="filterPositions('all',this)">All</button>
-                <button class="tab" onclick="filterPositions('stock',this)">Stocks</button>
-                <button class="tab" onclick="filterPositions('etf',this)">ETFs</button>
-                <button class="tab" onclick="filterPositions('crypto',this)">Crypto</button>
-              </div>
-              <button class="sh-action" style="display:none;" id="m-add-pos-btn" onclick="openAddPosition()">+ Add</button>
-            </div>
-            <div class="pos-list" id="pos-list"></div>
-            <div class="empty" id="pos-empty" style="display:none;"><div class="empty-icon">📈</div>No positions yet.<br>Add your first holding.</div>
-          </div>
-
-          <div>
-            <div class="sh">
-              <div class="sh-title">Dividends received</div>
-              <button class="sh-action" onclick="openAddDividend()">+ Add</button>
-            </div>
-            <div id="div-list" style="display:grid;gap:7px;"></div>
-            <div class="empty" id="div-empty" style="display:none;"><div class="empty-icon">💶</div>No dividends logged yet.</div>
+            <div class="sh"><div class="sh-title">Streak</div></div>
+            <div id="d-streak-content"></div>
           </div>
         </div>
       </div>
@@ -504,10 +475,6 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
     <button class="mnav-btn active" onclick="showSec('dashboard',this,'m')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       Dashboard
-    </button>
-    <button class="mnav-btn" onclick="showSec('portfolio',this,'m')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3" stroke-linecap="round"/></svg>
-      Portfolio
     </button>
     <button class="mnav-btn" onclick="showSec('pnl',this,'m')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 7 21 7 21 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -727,7 +694,7 @@ function showSec(id,btn,type){
   if(type==='s')document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
   if(type==='m')document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const idx=['dashboard','portfolio','pnl','history','settings'].indexOf(id);
+  const idx=['dashboard','pnl','history','settings'].indexOf(id);
   if(idx>-1){
     document.querySelectorAll('.snav-btn')[idx].classList.add('active');
     document.querySelectorAll('.mnav-btn')[idx].classList.add('active');
@@ -1003,7 +970,7 @@ function exportCSV(){
 }
 
 let chartCum,chartMonthly,chartAlloc;
-function render(){renderDashboard();renderPortfolio();renderPnL();renderHistory();}
+function render(){renderDashboard();renderPnL();renderHistory();renderStreak();}
 
 function renderDashboard(){
   const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
@@ -1248,16 +1215,18 @@ function renderHistory(){
     const rows=monthEntries.map(e=>{
       const net=e.net_pnl!=null?e.net_pnl:e.pnl;
       const hasTax=e.tax&&e.tax>0;
-      return `<div class="hrow">
+      return `<div class="swipe-wrap" id="swipe-${e.id}">
+      <div class="swipe-delete-bg" onclick="deleteEntry('${e.id}')">Delete</div>
+      <div class="swipe-content hrow" id="swipe-content-${e.id}" ontouchstart="swipeStart(event,'${e.id}')" ontouchmove="swipeMove(event,'${e.id}')" ontouchend="swipeEnd(event,'${e.id}')">
         <div class="hdot" style="background:${net>=0?'var(--grn)':'var(--red)'}"></div>
         <div class="hinfo">
-          <div style="display:flex;align-items:center;gap:6px;">
-          <div class="hdate">${e.date}</div>
-          <span class="cat-badge cat-${e.category||'trade'}">${{trade:'Trade',interest:'Interest',dividend:'Dividend',tax_correction:'Tax Correction'}[e.category||'trade']}</span>
-        </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div class="hdate">${e.date}</div>
+            <span class="cat-badge cat-${e.category||'trade'}">${{trade:'Trade',interest:'Interest',dividend:'Dividend',tax_correction:'Tax Correction'}[e.category||'trade']}</span>
+          </div>
           ${e.company?`<div class="hnote" style="color:var(--t2);font-weight:600;">${e.company}</div>`:''}
           ${e.note?`<div class="hnote">${e.note}</div>`:''}
-          ${e.pnl?`<div class="hnote" style="color:var(--t3);">gain ${fmtE(e.pnl,false)} · tax & fees −${fmtE(e.tax||parseFloat((e.pnl*0.26375+1).toFixed(2)),false)}</div>`:''}
+          ${(e.category==='trade'||!e.category)?`<div class="hnote" style="color:var(--t3);">gain ${fmtE(e.pnl,false)} · tax −${fmtE(e.tax||parseFloat((e.pnl*0.26375+1).toFixed(2)),false)}</div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;margin-right:8px;">
           <div class="hpnl" style="color:${net>=0?'var(--grn)':'var(--red)'}">${fmtE(net)}</div>
@@ -1267,7 +1236,8 @@ function renderHistory(){
           <button class="del-btn" onclick="editEntry('${e.id}')" style="color:var(--blu);border-color:var(--blu2);" title="Edit">✎</button>
           <button class="del-btn" onclick="deleteEntry('${e.id}')" title="Delete">×</button>
         </div>
-      </div>`;
+      </div>
+    </div>`;
     }).join('');
 
     return `<div class="month-group">
@@ -1285,7 +1255,70 @@ function renderHistory(){
 async function refreshData(){
   const icon=document.getElementById('refresh-icon');
   if(icon)icon.classList.add('spin');
-  await loadAll();
+  await // ── SWIPE TO DELETE ──
+let swipeStartX={};
+function swipeStart(e,id){swipeStartX[id]=e.touches[0].clientX;}
+function swipeMove(e,id){
+  const dx=e.touches[0].clientX-swipeStartX[id];
+  const el=document.getElementById('swipe-content-'+id);
+  if(!el)return;
+  if(dx<0)el.style.transform=`translateX(${Math.max(-80,dx)}px)`;
+  else if(el.classList.contains('swiped'))el.style.transform=`translateX(${Math.min(0,-80+dx)}px)`;
+}
+function swipeEnd(e,id){
+  const dx=e.changedTouches[0].clientX-swipeStartX[id];
+  const el=document.getElementById('swipe-content-'+id);
+  if(!el)return;
+  el.style.transform='';
+  // Close other open swipes
+  document.querySelectorAll('.swipe-content.swiped').forEach(s=>{if(s.id!=='swipe-content-'+id)s.classList.remove('swiped');});
+  if(dx<-40)el.classList.add('swiped');
+  else el.classList.remove('swiped');
+}
+// Close swipe on tap outside
+document.addEventListener('touchstart',e=>{
+  if(!e.target.closest('.swipe-wrap')){
+    document.querySelectorAll('.swipe-content.swiped').forEach(s=>s.classList.remove('swiped'));
+  }
+});
+
+// ── STREAK RENDERER ──
+function renderStreak(){
+  const el=document.getElementById('d-streak-content');
+  if(!el)return;
+  const trades=entries.filter(e=>e.category==='trade'||!e.category).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!trades.length){el.innerHTML='<div class="empty" style="padding:16px;">No trades yet</div>';return;}
+  let cur=0,best=0,tmp=0;
+  let curLose=0,worstLose=0,tmpLose=0;
+  trades.forEach(e=>{
+    if(e.pnl>0){tmp++;tmpLose=0;}
+    else{tmpLose++;tmp=0;}
+    if(tmp>best)best=tmp;
+    if(tmpLose>worstLose)worstLose=tmpLose;
+  });
+  // current streak
+  for(let i=trades.length-1;i>=0;i--){
+    if(i===trades.length-1){cur=trades[i].pnl>0?1:-1;continue;}
+    if(trades[i].pnl>0&&cur>0)cur++;
+    else if(trades[i].pnl<0&&cur<0)cur--;
+    else break;
+  }
+  const totalTrades=trades.length;
+  const wins=trades.filter(e=>e.pnl>0).length;
+  const winRate=totalTrades?Math.round(wins/totalTrades*100):0;
+  const bestT=trades.reduce((b,e)=>e.pnl>b.pnl?e:b,trades[0]);
+  const worstT=trades.reduce((w,e)=>e.net_pnl<w.net_pnl?e:w,trades[0]);
+  const curColor=cur>0?'var(--grn)':cur<0?'var(--red)':'var(--t3)';
+  const curLabel=cur>0?`${cur} win streak 🔥`:cur<0?`${Math.abs(cur)} loss streak`:'—';
+  el.innerHTML=`<div class="streak-grid">
+    <div class="streak-item"><div class="streak-num" style="color:${curColor}">${Math.abs(cur)||'—'}</div><div class="streak-lbl">Current streak</div><div style="font-size:10px;color:${curColor};margin-top:3px;font-family:'JetBrains Mono',monospace;">${cur>0?'winning':cur<0?'losing':''}</div></div>
+    <div class="streak-item"><div class="streak-num" style="color:var(--grn)">${best}</div><div class="streak-lbl">Best win streak</div></div>
+    <div class="streak-item"><div class="streak-num" style="color:var(--amb)">${winRate}%</div><div class="streak-lbl">Win rate</div></div>
+    <div class="streak-item"><div class="streak-num" style="color:var(--grn);font-size:18px;">${fmtE(bestT.pnl,false)}</div><div class="streak-lbl">Best trade</div><div style="font-size:10px;color:var(--t3);margin-top:2px;font-family:'JetBrains Mono',monospace;">${bestT.company||bestT.date}</div></div>
+  </div>`;
+}
+
+loadAll();
   if(icon)icon.classList.remove('spin');
   toast('Data synced ✓');
 }
