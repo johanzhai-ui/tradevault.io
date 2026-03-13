@@ -28,34 +28,37 @@
 html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;}
 
 /* ── LAYOUT ── */
-.layout{display:flex;min-height:100vh;}
+.layout{display:flex;flex-direction:column;min-height:100vh;}
 
-/* SIDEBAR (desktop) */
-.sidebar{width:var(--sidebar);background:var(--bg1);border-right:0.5px solid var(--line);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;padding:32px 0 24px;}
-.sidebar-logo{padding:0 20px 28px;border-bottom:0.5px solid var(--line);}
-.sidebar-logo h1{font-size:18px;font-weight:700;letter-spacing:-0.3px;}
-.sidebar-logo h1 em{font-style:normal;color:var(--grn);}
-.sidebar-logo .ver{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:3px;}
-.sidebar-nav{flex:1;padding:16px 12px;}
-.snav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r2);border:none;background:none;color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:left;margin-bottom:2px;}
-.snav-btn svg{width:17px;height:17px;flex-shrink:0;}
+/* TOP NAVBAR (desktop) */
+.top-navbar{display:none;position:sticky;top:0;left:0;right:0;z-index:200;background:rgba(14,17,23,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:0.5px solid var(--line);}
+.top-navbar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:56px;padding:0 28px;gap:0;}
+.top-navbar-logo{font-size:17px;font-weight:700;letter-spacing:-0.3px;margin-right:32px;flex-shrink:0;}
+.top-navbar-logo em{font-style:normal;color:var(--grn);}
+.top-navbar-nav{display:flex;align-items:center;gap:2px;flex:1;}
+.snav-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:var(--r2);border:none;background:none;color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.snav-btn svg{width:15px;height:15px;flex-shrink:0;}
 .snav-btn:hover{background:var(--bg3);color:var(--t1);}
 .snav-btn.active{background:var(--grn2);color:var(--grn);}
-.sidebar-footer{padding:16px 20px;border-top:0.5px solid var(--line);}
-.sidebar-footer .sf-label{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
-.sidebar-footer .sf-goal{font-size:13px;font-weight:600;color:var(--t1);}
-.sf-bar-track{height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-top:6px;}
-.sf-bar-fill{height:4px;border-radius:99px;transition:width 0.5s;}
+.top-navbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.top-navbar-goal{display:flex;flex-direction:column;align-items:flex-end;margin-right:12px;}
+.top-navbar-goal .tng-label{font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;}
+.top-navbar-goal .tng-val{font-size:12px;font-weight:600;color:var(--t1);font-family:'JetBrains Mono',monospace;}
+.tng-bar{width:80px;height:3px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-top:3px;}
+.tng-bar-fill{height:3px;border-radius:99px;transition:width 0.5s;}
+/* keep sf-bar IDs working */
+.sf-bar-track{display:none;}
+.sf-bar-fill{display:none;}
 
 /* MAIN CONTENT */
-.main{flex:1;margin-left:var(--sidebar);min-height:100vh;}
-.main-inner{max-width:1100px;margin:0 auto;padding:32px 32px 40px;}
+.main{flex:1;min-height:100vh;}
+.main-inner{max-width:1200px;margin:0 auto;padding:28px 32px 40px;}
 
-/* DESKTOP TOPBAR */
-.desktop-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
-.desktop-topbar h2{font-size:22px;font-weight:700;letter-spacing:-0.4px;}
+/* DESKTOP TOPBAR (section title row) */
+.desktop-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.desktop-topbar h2{font-size:20px;font-weight:700;letter-spacing:-0.4px;}
 .desktop-topbar .topbar-actions{display:flex;gap:10px;}
-@media(min-width:769px){.metrics-row{grid-template-columns:repeat(4,1fr);}}
+@media(min-width:769px){.metrics-row{grid-template-columns:repeat(4,1fr);}.top-navbar{display:block;}.main-inner{padding-top:28px;}}
 
 /* GRID LAYOUTS for desktop */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
@@ -74,7 +77,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 
 /* MOBILE LAYOUT */
 @media(max-width:768px){
-  .sidebar{display:none;}
+  .top-navbar{display:none;}
   .main{margin-left:0;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));}
   .main-inner{padding:0 0 20px;}
   .mobile-nav{display:block;}
@@ -341,36 +344,46 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 
 <div class="layout" id="app-layout" style="display:none;">
 
-  <!-- SIDEBAR (desktop only) -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <h1>TR <em>Pro</em></h1>
-      <div class="ver">Portfolio Tracker</div>
+  <!-- TOP NAVBAR (desktop only) -->
+  <header class="top-navbar">
+    <div class="top-navbar-inner">
+      <div class="top-navbar-logo">TR <em>Pro</em></div>
+      <nav class="top-navbar-nav">
+        <button class="snav-btn active" onclick="showSec('dashboard',this,'s')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </button>
+        <button class="snav-btn" onclick="showSec('pnl',this,'s')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 7 21 7 21 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          P&L
+        </button>
+        <button class="snav-btn" onclick="showSec('history',this,'s')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 10h10M4 14h12M4 18h8" stroke-linecap="round"/></svg>
+          History
+        </button>
+        <button class="snav-btn" onclick="showSec('settings',this,'s')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </button>
+      </nav>
+      <div class="top-navbar-right">
+        <div class="top-navbar-goal">
+          <div class="tng-label">Yearly goal</div>
+          <div class="tng-val" id="sf-goal-text">0 € / 100k €</div>
+          <div class="tng-bar"><div class="tng-bar-fill" id="sf-bar" style="width:0%;background:var(--grn);"></div></div>
+        </div>
+        <button class="icon-btn" onclick="refreshData()" title="Sync">
+          <svg id="refresh-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4v4h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8A7 7 0 1 1 6.5 14" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn" onclick="exportCSV()" title="Export CSV">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3v10M6 9l4 4 4-4M4 15h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="doLogout()">Sign out</button>
+      </div>
     </div>
-    <nav class="sidebar-nav">
-      <button class="snav-btn active" onclick="showSec('dashboard',this,'s')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Dashboard
-      </button>
-      <button class="snav-btn" onclick="showSec('pnl',this,'s')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 7 21 7 21 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        P&L Tracker
-      </button>
-      <button class="snav-btn" onclick="showSec('history',this,'s')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 10h10M4 14h12M4 18h8" stroke-linecap="round"/></svg>
-        History
-      </button>
-      <button class="snav-btn" onclick="showSec('settings',this,'s')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        Settings
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sf-label">Yearly goal</div>
-      <div class="sf-goal" id="sf-goal-text">0 € / 100,000 €</div>
-      <div class="sf-bar-track"><div class="sf-bar-fill" id="sf-bar" style="width:0%;background:var(--grn);"></div></div>
-    </div>
-  </aside>
+  </header>
+  <!-- keep sf-bar refs working for sidebar footer (now hidden) -->
+  <div style="display:none;"><div id="sf-bar-hidden"></div></div>
 
   <!-- MAIN -->
   <main class="main">
@@ -400,10 +413,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
             <h2>Dashboard</h2>
             <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="d-tagline">Warrant Trading Performance</div>
           </div>
-          <div class="topbar-actions">
-            <button class="btn-ghost" id="refresh-btn-desktop" onclick="refreshData()">&#8635; Sync</button>
-            <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
-          </div>
+          <div class="topbar-actions"></div>
         </div>
 
         <!-- Hero: Net P&L + Expectancy side by side -->
@@ -497,9 +507,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 
       <!-- ── SETTINGS ── -->
       <div class="sec" id="sec-settings">
-        <div class="desktop-topbar"><h2>Settings</h2>
-          <button class="btn-danger-sm" onclick="doLogout()">Sign out</button>
-        </div>
+        <div class="desktop-topbar"><h2>Settings</h2></div>
 
         <div style="max-width:560px;">
           <div class="install-card">
@@ -905,14 +913,16 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function showSec(id,btn,type){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
-  if(type==='s')document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
-  if(type==='m')document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const idx=['dashboard','pnl','history','settings'].indexOf(id);
   if(idx>-1){
     document.querySelectorAll('.snav-btn')[idx].classList.add('active');
     document.querySelectorAll('.mnav-btn')[idx].classList.add('active');
   }
+  // Scroll to top on section change
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
