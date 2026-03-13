@@ -1193,7 +1193,7 @@ function renderDashboard(){
   const tag=positions.length+' positions · '+sorted.length+' weeks tracked';
   ['d-tagline','m-tagline'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=tag;});
   document.getElementById('d-networth').textContent=fmtE(totalRealPnL,false);
-  document.getElementById('d-div-badge').textContent=fmtE(totalDivs,false);
+  const divBadge=document.getElementById('d-div-badge');if(divBadge)divBadge.textContent=fmtE(totalDivs,false);
 
   const pct=Math.max(0,Math.min(100,(totalRealPnL/goal.total)*100));
   const bc=pct>=100?'#05d68d':pct>=50?'#05d68d':pct>=25?'#f5a623':'#f0466a';
