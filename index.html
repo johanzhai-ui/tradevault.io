@@ -72,16 +72,21 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 /* MOBILE LAYOUT */
 @media(max-width:768px){
   .sidebar{display:none;}
-  .main{margin-left:0;padding-bottom:80px;}
-  .main-inner{padding:0 0 16px;}
+  .main{margin-left:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
+  .main-inner{padding:0 0 20px;}
   .mobile-nav{display:block;}
   .desktop-topbar{display:none;}
   .dash-grid{grid-template-columns:1fr;}
   .dash-grid-2{grid-template-columns:1fr;}
   .metrics-row{grid-template-columns:1fr 1fr;}
-  .mobile-topbar{display:flex!important;}
+  .mobile-topbar{display:flex!important;padding:56px 16px 12px;}
   .portfolio-grid{grid-template-columns:1fr!important;}
   .pnl-grid{grid-template-columns:1fr!important;}
+  .card{padding:14px;}
+  .mcard{padding:11px 12px;}
+  .pos-row{padding:11px 12px;}
+  .hero-val{font-size:36px;}
+  .modal{max-height:92vh;}
 }
 
 /* MOBILE TOPBAR (hidden on desktop) */
@@ -292,6 +297,9 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
         <div class="tagline" id="m-tagline" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">Portfolio · P&L · Dividends</div>
       </div>
       <div style="display:flex;gap:8px;">
+        <button class="icon-btn" id="refresh-btn" onclick="refreshData()" title="Sync latest data">
+          <svg id="refresh-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4v4h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8A7 7 0 1 1 6.5 14" stroke-linecap="round"/></svg>
+        </button>
         <button class="icon-btn" onclick="exportCSV()">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3v10M6 9l4 4 4-4M4 15h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -308,6 +316,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
             <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="d-tagline">Portfolio · P&L · Dividends</div>
           </div>
           <div class="topbar-actions">
+            <button class="btn-ghost" id="refresh-btn-desktop" onclick="refreshData()">&#8635; Sync</button>
             <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
           </div>
         </div>
@@ -558,7 +567,8 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
   <div style="width:32px;height:32px;border:2px solid #05d68d;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
   <div id="loading-msg" style="font-size:13px;font-family:'JetBrains Mono',monospace;color:#7a8099;">Connecting…</div>
 </div>
-<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+<style>@keyframes spin{to{transform:rotate(360deg);}}
+.spin{animation:spin 0.7s linear infinite;}</style>
 
 <script>
 const SB_URL='https://raouhtxqamcrftnxpvgo.supabase.co';
@@ -1001,6 +1011,14 @@ function renderHistory(){
     <div style="text-align:right;flex-shrink:0;"><div class="hpnl" style="color:${e.pnl>=0?'var(--grn)':'var(--red)'}">${fmtE(e.pnl)}</div><div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">cum: ${fmtE(cumMap[e.id],false)}</div></div>
     <button class="del-btn" onclick="deleteEntry('${e.id}')">×</button>
   </div>`).join('');
+}
+
+async function refreshData(){
+  const icon=document.getElementById('refresh-icon');
+  if(icon)icon.classList.add('spin');
+  await loadAll();
+  if(icon)icon.classList.remove('spin');
+  toast('Data synced ✓');
 }
 
 loadAll();
