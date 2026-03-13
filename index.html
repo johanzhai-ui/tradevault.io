@@ -875,11 +875,16 @@ async function loadAll(){
     document.getElementById('s-monthly').value=goal.monthly;
     document.getElementById('s-deadline').value=goal.deadline;
     document.getElementById('s-year').value=goal.year||2026;
-    hideLoading();render();
+    hideLoading();
+    try{render();}catch(re){console.error('Render error:',re.message,re.stack);}
   }catch(err){
     hideLoading();
-    toast('⚠ DB error: '+err.message,6000);
-    render();
+    if(err.message&&err.message.includes('Cannot set properties')){
+      console.error('Render error disguised as DB error:',err);
+      try{render();}catch(re){console.error('Render error:',re);}
+    } else {
+      toast('⚠ DB error: '+err.message,6000);
+    }
   }
 }
 
@@ -1030,7 +1035,7 @@ async function savePosition(){
       await sbInsert('positions',[{id,ticker,name:name||ticker,type,shares,avg_price:avg,current_price:current}]);
       positions.push({id,ticker,name:name||ticker,type,shares,avg,current});
     }
-    render();closeModal('modal-position');toast('Position saved ✓');
+    try{render();}catch(e){console.error(e);}closeModal('modal-position');toast('Position saved ✓');
   }catch(err){toast('⚠ Error: '+err.message,5000);}
 }
 
@@ -1083,7 +1088,7 @@ async function saveDividend(){
     const id=uid();
     await sbInsert('dividends',[{id,ticker,amount,date,note}]);
     dividends.unshift({id,ticker,amount,date,note});
-    render();closeModal('modal-dividend');
+    try{render();}catch(e){console.error(e);}closeModal('modal-dividend');
     document.getElementById('dv-ticker').value='';
     document.getElementById('dv-amount').value='';
     document.getElementById('dv-note').value='';
@@ -1108,13 +1113,13 @@ async function saveEntry(){
       if(idx>-1)entries[idx]={...entries[idx],date,pnl,tax,company,note,net_pnl:net,category};
       editEntryId=null;
       entries.sort((a,b)=>a.date.localeCompare(b.date));
-      render();closeModal('modal-entry');toast('Entry updated ✓');
+      try{render();}catch(e){console.error(e);}closeModal('modal-entry');toast('Entry updated ✓');
     } else {
       const id=uid();
       await sbInsert('entries',[{id,date,pnl,note,tax,company,net_pnl:net,category}]);
       entries.push({id,date,pnl,tax,company,note,net_pnl:net,category});
       entries.sort((a,b)=>a.date.localeCompare(b.date));
-      render();closeModal('modal-entry');
+      try{render();}catch(e){console.error(e);}closeModal('modal-entry');
       ['e-pnl','e-company','e-note'].forEach(id=>document.getElementById(id).value='');
       document.getElementById('net-preview').style.display='none';
       toast('Entry added ✓');
@@ -1127,7 +1132,7 @@ async function deleteEntry(id){
   try{
     await sbDelete('entries',id);
     entries=entries.filter(e=>e.id!==id);
-    render();toast('Entry removed');
+    try{render();}catch(e){console.error(e);}toast('Entry removed');
   }catch(err){toast('⚠ '+err.message,5000);}
 }
 
@@ -1141,7 +1146,7 @@ async function saveSettings(){
   toast('Saving…',10000);
   try{
     await sbUpdate('goal',1,{total:t,monthly:m,deadline:d,year:yr});
-    render();toast('Settings saved ✓');
+    try{render();}catch(e){console.error(e);}toast('Settings saved ✓');
   }catch(err){toast('⚠ '+err.message,5000);}
 }
 
@@ -1155,7 +1160,7 @@ async function clearAll(){
       fetch(`${SB_URL}/rest/v1/dividends?id=neq.null`,{method:'DELETE',headers:H()})
     ]);
     entries=[];positions=[];dividends=[];
-    render();toast('All data cleared');
+    try{render();}catch(e){console.error(e);}toast('All data cleared');
   }catch(err){toast('⚠ '+err.message,5000);}
 }
 
@@ -1360,7 +1365,7 @@ function renderDashboard(){
 
 async function deleteDividend(id){
   toast('Deleting…',10000);
-  try{await sbDelete('dividends',id);dividends=dividends.filter(d=>d.id!==id);render();toast('Dividend removed');}
+  try{await sbDelete('dividends',id);dividends=dividends.filter(d=>d.id!==id);try{render();}catch(e){console.error(e);}toast('Dividend removed');}
   catch(err){toast('⚠ '+err.message,5000);}
 }
 
