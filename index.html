@@ -55,12 +55,13 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .desktop-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
 .desktop-topbar h2{font-size:22px;font-weight:700;letter-spacing:-0.4px;}
 .desktop-topbar .topbar-actions{display:flex;gap:10px;}
+@media(min-width:769px){.metrics-row{grid-template-columns:repeat(4,1fr);}}
 
 /* GRID LAYOUTS for desktop */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .dash-grid-2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;}
 .dash-grid-full{margin-bottom:14px;}
-.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.metrics-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
 
 /* MOBILE BOTTOM NAV */
 .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,10,15,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:0.5px solid var(--line);z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
@@ -108,8 +109,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 /* METRIC CARDS */
 .mcard{background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:14px 16px;}
 .mcard .ml{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
-.mcard .mv{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;}
-@media(max-width:768px){.mcard .mv{font-size:17px;}}
+.mcard .mv{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;line-height:1.2;word-break:break-all;}
 
 /* HERO */
 .hero-val{font-size:44px;font-weight:700;letter-spacing:-2px;font-family:'JetBrains Mono',monospace;line-height:1;}
@@ -400,45 +400,49 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
           </div>
         </div>
 
-        <!-- Hero + goal on desktop: side by side -->
-        <div class="dash-grid-2" style="margin-bottom:14px;">
-          <div class="card">
-            <div class="card-label">Total realized P&L (net after tax)</div>
+        <!-- Hero net P&L + goal side by side -->
+        <div class="dash-grid-2" style="margin-bottom:10px;">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-label">Net realized P&L</div>
             <div class="hero-val" id="d-networth">0,00 €</div>
-            <div class="hero-sub">
+            <div class="hero-sub" style="margin-top:6px;">
               <span><span class="badge badge-pur" id="d-div-badge">0,00 €</span> dividends & interest</span>
             </div>
           </div>
-          <div class="card">
-            <div class="card-label">Yearly goal progress</div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
-              <span style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;" id="d-goal-earned">0 €</span>
-              <span style="font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace;" id="d-goal-pct">0%</span>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-label">Yearly goal</div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+              <span style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;" id="d-goal-earned">0 €</span>
+              <span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="d-goal-pct">0%</span>
             </div>
             <div class="gbar-track"><div class="gbar-fill" id="d-gbar" style="width:0%;background:var(--grn);"></div></div>
-            <div class="gfooter"><span id="d-goal-remaining"></span><span id="d-goal-deadline"></span></div>
-            <div class="projection" id="d-projection"></div>
+            <div class="gfooter" style="margin-top:4px;"><span id="d-goal-remaining"></span><span id="d-goal-deadline"></span></div>
+            <div class="projection" id="d-projection" style="margin-top:8px;font-size:10px;"></div>
           </div>
         </div>
 
-        <div class="metrics-row" id="d-metrics" style="grid-template-columns:repeat(4,1fr);"></div>
+        <!-- Monthly target - full width -->
+        <div class="card" style="margin-bottom:10px;" id="d-monthly-target"></div>
 
-        <div class="card" style="margin-bottom:12px;" id="d-monthly-target"></div>
+        <!-- Key metrics 2x2 grid on mobile -->
+        <div class="metrics-row" id="d-metrics"></div>
 
-        <div class="dash-grid-2">
-          <div class="card">
-            <div class="sh"><div class="sh-title">Cumulative P&L vs goal pace</div>
-              <div style="display:flex;gap:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);">
-                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:2px;background:var(--grn);display:inline-block;border-radius:2px;"></span>actual</span>
-                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:2px;background:var(--blu);display:inline-block;border-radius:2px;opacity:0.6;"></span>goal</span>
-              </div>
+        <!-- Chart full width on mobile -->
+        <div class="card" style="margin-bottom:10px;">
+          <div class="sh">
+            <div class="sh-title">Cumulative P&L vs goal pace</div>
+            <div style="display:flex;gap:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);">
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:2px;background:var(--grn);display:inline-block;border-radius:2px;"></span>actual</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:2px;background:var(--blu);display:inline-block;border-radius:2px;opacity:0.6;"></span>goal pace</span>
             </div>
-            <div class="chart-wrap" style="height:200px;"><canvas id="chart-cum"></canvas></div>
           </div>
-          <div class="card">
-            <div class="sh"><div class="sh-title">Streak</div></div>
-            <div id="d-streak-content"></div>
-          </div>
+          <div class="chart-wrap" style="height:180px;"><canvas id="chart-cum"></canvas></div>
+        </div>
+
+        <!-- Streak full width -->
+        <div class="card" style="margin-bottom:10px;">
+          <div class="sh"><div class="sh-title">Streak & stats</div></div>
+          <div id="d-streak-content"></div>
         </div>
       </div>
 
@@ -1234,44 +1238,55 @@ function renderDashboard(){
     ['Tax corrections',fmtE(taxCorrections),'var(--amb)'],
   ].map(([l,v,c])=>`<div class="mcard"><div class="ml">${l}</div><div class="mv" style="color:${c}">${v}</div></div>`).join('');
 
-  // Monthly target card - redesigned
+  // Monthly target card - with color zones
   const mtEl=document.getElementById('d-monthly-target');
   if(mtEl){
-    const over=currentMonthNet>goal.monthly;
+    const over=currentMonthNet>=goal.monthly;
     const diff=Math.abs(currentMonthNet-goal.monthly);
-    // Bar: actual vs target - allow overflow past target marker
-    const barMax=Math.max(currentMonthNet,goal.monthly)*1.15;
-    const actualPct=Math.min(100,(currentMonthNet/barMax)*100);
-    const targetPct=Math.min(99,(goal.monthly/barMax)*100);
+    const barMax=Math.max(currentMonthNet,goal.monthly)*1.2||goal.monthly*1.2;
+    const actualW=Math.min(100,(currentMonthNet/barMax)*100);
+    const targetW=Math.min(97,(goal.monthly/barMax)*100);
     const fullMonthName=['January','February','March','April','May','June','July','August','September','October','November','December'][new Date().getMonth()];
+    // Color: red=0-40%, amber=40-75%, blue=75-99%, green=100%+
+    const zoneColor = currentMonthNet<=0 ? 'var(--red)'
+      : monthPct<40 ? 'var(--red)'
+      : monthPct<75 ? 'var(--amb)'
+      : monthPct<100 ? 'var(--blu)'
+      : 'var(--grn)';
+    const statusLabel = currentMonthNet<=0 ? 'No profit yet'
+      : over ? `+${fmtE(diff,false)} above target 🎯`
+      : monthPct>=75 ? `Almost there — ${fmtE(diff,false)} to go`
+      : monthPct>=40 ? `In progress — ${fmtE(diff,false)} to go`
+      : `${fmtE(diff,false)} to reach target`;
     mtEl.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-        <div>
-          <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${fullMonthName} ${goal.year||2026}</div>
-          <div style="font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:${monthColor};">${fmtE(currentMonthNet)}</div>
-          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:3px;">
-            ${over
-              ? `<span style="color:var(--grn);">+${fmtE(diff,false)} above target 🎯</span>`
-              : `<span style="color:var(--t3);">${fmtE(diff,false)} to reach target</span>`
-            }
-          </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">${fullMonthName} ${goal.year||2026}</div>
+          <div style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:${zoneColor};">${fmtE(currentMonthNet)}</div>
+          <div style="font-size:11px;font-family:'JetBrains Mono',monospace;margin-top:3px;color:${zoneColor};">${statusLabel}</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Monthly target</div>
-          <div style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--t2);">${fmtE(goal.monthly,false)}</div>
-          <div style="font-size:10px;margin-top:3px;font-family:'JetBrains Mono',monospace;color:${monthColor};">${monthPct.toFixed(0)}%${over?' ✓':''}</div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px;">
+          <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-bottom:2px;">Target</div>
+          <div style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--t2);">${fmtE(goal.monthly,false)}</div>
+          <div style="font-size:12px;font-weight:700;margin-top:2px;font-family:'JetBrains Mono',monospace;color:${zoneColor};">${monthPct.toFixed(0)}%</div>
         </div>
       </div>
-      <div style="position:relative;height:8px;background:var(--bg3);border-radius:99px;">
-        <!-- Actual bar -->
-        <div style="position:absolute;left:0;top:0;height:8px;border-radius:99px;background:${monthColor};width:${actualPct.toFixed(1)}%;transition:width 0.6s cubic-bezier(.4,0,.2,1);"></div>
-        <!-- Target marker line -->
-        <div style="position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--amb);border-radius:2px;left:${targetPct.toFixed(1)}%;"></div>
+      <!-- Segmented progress bar -->
+      <div style="position:relative;height:10px;background:var(--bg3);border-radius:99px;overflow:visible;">
+        <!-- Zone backgrounds: red 0-40%, amber 40-75%, blue 75-100% -->
+        <div style="position:absolute;left:0;top:0;height:10px;border-radius:99px;overflow:hidden;width:100%;">
+          <div style="height:10px;background:linear-gradient(to right, rgba(240,70,106,0.15) 0%, rgba(240,70,106,0.15) ${targetW*0.4}%, rgba(245,166,35,0.15) ${targetW*0.4}%, rgba(245,166,35,0.15) ${targetW*0.75}%, rgba(76,141,255,0.15) ${targetW*0.75}%, rgba(76,141,255,0.15) ${targetW}%, rgba(5,214,141,0.15) ${targetW}%, rgba(5,214,141,0.15) 100%);width:100%;"></div>
+        </div>
+        <!-- Actual progress -->
+        <div style="position:absolute;left:0;top:0;height:10px;border-radius:99px;background:${zoneColor};width:${actualW.toFixed(1)}%;transition:width 0.6s cubic-bezier(.4,0,.2,1);opacity:0.9;"></div>
+        <!-- Target marker -->
+        <div style="position:absolute;top:-4px;bottom:-4px;width:3px;background:white;border-radius:2px;left:calc(${targetW.toFixed(1)}% - 1.5px);opacity:0.6;"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">
-        <span>€0</span>
-        <span style="color:var(--amb);">▲ target ${fmtE(goal.monthly,false)}</span>
-        ${over?`<span style="color:var(--grn);">actual ${fmtE(currentMonthNet,false)}</span>`:'<span></span>'}
+      <!-- Labels below bar -->
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;font-family:'JetBrains Mono',monospace;">
+        <span style="color:var(--t3);">€0</span>
+        <span style="color:rgba(255,255,255,0.5);">│ ${fmtE(goal.monthly,false)} target</span>
+        ${over ? `<span style="color:var(--grn);">${fmtE(currentMonthNet,false)} ✓</span>` : '<span></span>'}
       </div>`;
   }
 
@@ -1285,7 +1300,7 @@ function renderDashboard(){
     {data:cumData,borderColor:'#05d68d',backgroundColor:'rgba(5,214,141,0.06)',fill:true,tension:0.35,pointRadius:2,pointBackgroundColor:'#05d68d',borderWidth:2},
     {data:goalPace,borderColor:'#4c8dff',borderDash:[4,3],backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:0,borderWidth:1.5}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-    x:{ticks:{color:'#3d4460',font:{size:10},autoSkip:true,maxTicksLimit:8},grid:{display:false},border:{display:false}},
+    x:{ticks:{color:'#3d4460',font:{size:9},autoSkip:true,maxTicksLimit:6,callback:function(v,i,all){const d=this.getLabelForValue(v);return d?d.slice(5):''}},grid:{display:false},border:{display:false}},
     y:{ticks:{color:'#3d4460',font:{size:10,family:"'JetBrains Mono',monospace"},callback:v=>(v>=0?'+':'')+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.03)'},border:{display:false}}
   }}});
 
