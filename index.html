@@ -380,6 +380,10 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 10h10M4 14h12M4 18h8" stroke-linecap="round"/></svg>
           History
         </button>
+        <button class="snav-btn" onclick="showSec('analytics',this,'s')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Analytics
+        </button>
         <button class="snav-btn" onclick="showSec('settings',this,'s')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           Settings
@@ -527,6 +531,31 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
         <div class="empty" id="h-empty" style="display:none;"><div class="empty-icon">📋</div>No entries yet.<br>Add your first week in P&L Tracker.</div>
       </div>
 
+      <!-- ── ANALYTICS ── -->
+      <div class="sec" id="sec-analytics">
+        <div class="desktop-topbar">
+          <div><h2>Analytics</h2><div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;">Warrant trading performance breakdown</div></div>
+        </div>
+        <!-- Call vs Put breakdown -->
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-label">Call vs Put performance</div>
+          <div id="a-direction-content"><div class="empty"><div class="empty-icon">📊</div>Add trades with CALL/PUT direction to see breakdown.</div></div>
+        </div>
+        <!-- Trade distribution chart -->
+        <div class="card" style="margin-bottom:12px;">
+          <div class="sh">
+            <div class="sh-title">Trade distribution</div>
+            <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">net P&L per trade</div>
+          </div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="chart-distribution"></canvas></div>
+        </div>
+        <!-- Top underlyings -->
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-label">Performance by underlying</div>
+          <div id="a-underlying-content"><div class="empty"><div class="empty-icon">🏢</div>Add trades to see performance by company.</div></div>
+        </div>
+      </div>
+
       <!-- ── SETTINGS ── -->
       <div class="sec" id="sec-settings">
         <div class="desktop-topbar"><h2>Settings</h2></div>
@@ -576,6 +605,10 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
     <button class="mnav-btn" onclick="showSec('history',this,'m')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 10h10M4 14h12M4 18h8" stroke-linecap="round"/></svg>
       History
+    </button>
+    <button class="mnav-btn" onclick="showSec('analytics',this,'m')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Analytics
     </button>
     <button class="mnav-btn" onclick="showSec('settings',this,'m')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -637,6 +670,13 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
     </div>
     <div class="fg"><label>Date</label><input type="date" id="e-date"></div>
     <div class="fg" id="e-company-wrap"><label id="e-company-label">Company / Asset</label><input type="text" id="e-company" placeholder="e.g. Micron Technology"></div>
+    <div class="fg" id="e-direction-wrap">
+      <label>Direction <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+        <button type="button" id="dir-call" onclick="setDirection('call')" style="padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;touch-action:manipulation;">📈 CALL</button>
+        <button type="button" id="dir-put" onclick="setDirection('put')" style="padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;touch-action:manipulation;">📉 PUT</button>
+      </div>
+    </div>
     <div class="fg"><label id="e-pnl-label">TR Gain (€) <span style="color:var(--t3);font-weight:400;font-size:11px;">from Performance screen</span></label><input type="number" id="e-pnl" placeholder="e.g. 12218.60" step="0.01" oninput="updateNetPreview()"></div>
     <!-- Auto tax preview (trade only) -->
     <div id="net-preview" style="display:none;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r2);padding:12px 14px;margin-bottom:4px;">
@@ -919,7 +959,7 @@ async function loadAll(){
       sbGet('dividends','order=date.desc'),
       sbGet('goal','')
     ]);
-    entries=e.map(x=>({id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade'}));
+    entries=e.map(x=>({id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade',direction:x.direction||null}));
     positions=p.map(x=>({id:x.id,ticker:x.ticker,name:x.name,type:x.type,shares:parseFloat(x.shares),avg:parseFloat(x.avg_price),current:parseFloat(x.current_price)}));
     dividends=d.map(x=>({id:x.id,ticker:x.ticker,amount:parseFloat(x.amount),date:x.date,note:x.note||''}));
     if(g&&g.length){
@@ -966,7 +1006,7 @@ function showSec(id,btn,type){
   document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const idx=['dashboard','pnl','history','settings'].indexOf(id);
+  const idx=['dashboard','pnl','history','analytics','settings'].indexOf(id);
   if(idx>-1){
     document.querySelectorAll('.snav-btn')[idx].classList.add('active');
     document.querySelectorAll('.mnav-btn')[idx].classList.add('active');
@@ -1017,7 +1057,7 @@ function updateNetPreview(){
   val.style.color=net>=0?'var(--grn)':'var(--red)';
 }
 
-let currentCategory='trade';
+let currentCategory='trade', currentDirection=null;
 const CAT_LABELS={
   trade:{title:'Add Trade',pnlLabel:'TR Gain (€) <span style="color:var(--t3);font-weight:400;font-size:11px;">from Performance screen</span>',company:'Company / Asset',companyPh:'e.g. Micron Technology',pnlPh:'e.g. 12218.60',tax:true},
   interest:{title:'Add Interest',pnlLabel:'Interest received (€)',company:'Account / Note',companyPh:'e.g. Cash account',pnlPh:'e.g. 84.20',tax:false},
@@ -1038,6 +1078,24 @@ function setCategory(cat, btn){
   updateNetPreview();
 }
 
+function setDirection(dir){
+  currentDirection=currentDirection===dir?null:dir; // toggle
+  const callBtn=document.getElementById('dir-call');
+  const putBtn=document.getElementById('dir-put');
+  if(callBtn)callBtn.style.cssText=callBtn.style.cssText.replace(/background:[^;]+/,'').replace(/color:[^;]+/,'').replace(/border-color:[^;]+/,'');
+  if(putBtn)putBtn.style.cssText=putBtn.style.cssText.replace(/background:[^;]+/,'').replace(/color:[^;]+/,'').replace(/border-color:[^;]+/,'');
+  if(currentDirection==='call'&&callBtn){callBtn.style.background='rgba(5,214,141,0.15)';callBtn.style.color='var(--grn)';callBtn.style.borderColor='var(--grn)';}
+  if(currentDirection==='put'&&putBtn){putBtn.style.background='rgba(240,70,106,0.15)';putBtn.style.color='var(--red)';putBtn.style.borderColor='var(--red)';}
+}
+
+function resetDirectionBtns(){
+  currentDirection=null;
+  const callBtn=document.getElementById('dir-call');
+  const putBtn=document.getElementById('dir-put');
+  if(callBtn){callBtn.style.background='var(--bg3)';callBtn.style.color='var(--t2)';callBtn.style.borderColor='var(--line2)';}
+  if(putBtn){putBtn.style.background='var(--bg3)';putBtn.style.color='var(--t2)';putBtn.style.borderColor='var(--line2)';}
+}
+
 function openAddEntry(){
   editEntryId=null;
   currentCategory='trade';
@@ -1051,6 +1109,10 @@ function openAddEntry(){
   document.getElementById('e-date').value=iso(new Date());
   ['e-pnl','e-company','e-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('net-preview').style.display='none';
+  resetDirectionBtns();
+  // Show direction only for trades
+  const dirWrap=document.getElementById('e-direction-wrap');
+  if(dirWrap)dirWrap.style.display='block';
   openModal('modal-entry');
 }
 
@@ -1162,22 +1224,23 @@ async function saveEntry(){
   const company=document.getElementById('e-company').value.trim();
   const note=document.getElementById('e-note').value.trim();
   const category=currentCategory||'trade';
+  const direction=category==='trade'?(currentDirection||null):null;
   if(!date||isNaN(pnl)){toast('Please enter date and amount');return;}
   let tax=0, net=pnl;
   if(category==='trade'){const t=calcTax(pnl);tax=t.total;net=t.net;}
   toast('Saving…',10000);
   try{
     if(editEntryId){
-      await sbUpdate('entries',editEntryId,{date,pnl,tax,company,note,net_pnl:net,category});
+      await sbUpdate('entries',editEntryId,{date,pnl,tax,company,note,net_pnl:net,category,direction});
       const idx=entries.findIndex(x=>x.id===editEntryId);
-      if(idx>-1)entries[idx]={...entries[idx],date,pnl,tax,company,note,net_pnl:net,category};
+      if(idx>-1)entries[idx]={...entries[idx],date,pnl,tax,company,note,net_pnl:net,category,direction};
       editEntryId=null;
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');toast('Entry updated ✓');
     } else {
       const id=uid();
-      await sbInsert('entries',[{id,date,pnl,note,tax,company,net_pnl:net,category}]);
-      entries.push({id,date,pnl,tax,company,note,net_pnl:net,category});
+      await sbInsert('entries',[{id,date,pnl,note,tax,company,net_pnl:net,category,direction}]);
+      entries.push({id,date,pnl,tax,company,note,net_pnl:net,category,direction});
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');
       ['e-pnl','e-company','e-note'].forEach(id=>document.getElementById(id).value='');
@@ -1248,7 +1311,7 @@ function exportCSV(){
 }
 
 let chartCum,chartMonthly;
-function render(){renderDashboard();renderPnL();renderHistory();renderStreak();renderPaceCard();}
+function render(){renderDashboard();renderPnL();renderHistory();renderStreak();renderPaceCard();renderAnalytics();}
 
 function renderDashboard(){
   const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
@@ -1654,6 +1717,104 @@ function loadDemoData(){
   try{document.getElementById('s-year').value=goal.year;}catch(e){}
 
   try{render();}catch(e){console.error('Demo render error:',e);}
+}
+
+// ── ANALYTICS ──
+let chartDistribution=null;
+function renderAnalytics(){
+  const trades=entries.filter(e=>e.category==='trade'||!e.category);
+
+  // ── CALL vs PUT ──
+  const dirEl=document.getElementById('a-direction-content');
+  if(dirEl){
+    const calls=trades.filter(e=>e.direction==='call');
+    const puts=trades.filter(e=>e.direction==='put');
+    const untagged=trades.filter(e=>!e.direction);
+    if(!calls.length&&!puts.length){
+      dirEl.innerHTML='<div class="empty" style="padding:20px 0;"><div class="empty-icon">📊</div>Add trades with CALL/PUT direction to see breakdown.</div>';
+    } else {
+      function dirStats(arr){
+        if(!arr.length)return null;
+        const wins=arr.filter(e=>(e.net_pnl||e.pnl)>0);
+        const losses=arr.filter(e=>(e.net_pnl||e.pnl)<=0);
+        const totalNet=arr.reduce((s,e)=>s+(e.net_pnl||e.pnl),0);
+        const avgW=wins.length?wins.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/wins.length:0;
+        const avgL=losses.length?Math.abs(losses.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/losses.length):0;
+        const wr=arr.length?Math.round(wins.length/arr.length*100):0;
+        return {total:arr.length,wins:wins.length,losses:losses.length,totalNet,avgW,avgL,wr};
+      }
+      const cs=dirStats(calls),ps=dirStats(puts);
+      function dirCard(label,stats,color,emoji){
+        if(!stats)return `<div class="mcard" style="opacity:0.4;"><div class="ml">${emoji} ${label}</div><div class="mv" style="color:var(--t3);">No trades</div></div>`;
+        return `<div class="mcard">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:14px;font-weight:700;color:${color};">${emoji} ${label}</div>
+            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${stats.total} trades</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Win rate</div><div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${stats.wr>=50?'var(--grn)':'var(--red)'};">${stats.wr}%</div></div>
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Avg win</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);">${fmtE(stats.avgW,false)}</div></div>
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Avg loss</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);">−${fmtE(stats.avgL,false)}</div></div>
+          </div>
+          <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">Total net P&L</span>
+            <span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${stats.totalNet>=0?'var(--grn)':'var(--red)'};">${fmtE(stats.totalNet)}</span>
+          </div>
+        </div>`;
+      }
+      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${dirCard('Call',cs,'var(--grn)','📈')}${dirCard('Put',ps,'var(--red)','📉')}</div>${untagged.length?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untagged.length} trade${untagged.length!==1?'s':''} without direction tag</div>`:''}`;
+    }
+  }
+
+  // ── UNDERLYING PERFORMANCE ──
+  const ulEl=document.getElementById('a-underlying-content');
+  if(ulEl){
+    if(!trades.length){
+      ulEl.innerHTML='<div class="empty" style="padding:20px 0;"><div class="empty-icon">🏢</div>No trades yet.</div>';
+    } else {
+      const byCompany={};
+      trades.forEach(e=>{
+        const c=e.company||'Unknown';
+        if(!byCompany[c])byCompany[c]={trades:[],totalNet:0,wins:0};
+        byCompany[c].trades.push(e);
+        byCompany[c].totalNet+=e.net_pnl||e.pnl;
+        if((e.net_pnl||e.pnl)>0)byCompany[c].wins++;
+      });
+      const sorted=Object.entries(byCompany).sort((a,b)=>b[1].totalNet-a[1].totalNet);
+      ulEl.innerHTML=`<div style="display:grid;gap:7px;">${sorted.map(([name,s])=>{
+        const wr=Math.round(s.wins/s.trades.length*100);
+        const c=s.totalNet>=0?'var(--grn)':'var(--red)';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${name}</div><div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">${s.trades.length} trades · ${wr}% win rate</div></div>
+          <div style="text-align:right;"><div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};">${fmtE(s.totalNet)}</div></div>
+        </div>`;
+      }).join('')}</div>`;
+    }
+  }
+
+  // ── DISTRIBUTION CHART ──
+  if(chartDistribution)chartDistribution.destroy();
+  const canvas=document.getElementById('chart-distribution');
+  if(!canvas)return;
+  if(!trades.length){
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    return;
+  }
+  const netVals=trades.map(e=>parseFloat((e.net_pnl||e.pnl).toFixed(2)));
+  const labels=trades.map((e,i)=>`#${i+1} ${e.company||e.date}`);
+  const colors=netVals.map(v=>v>=0?'rgba(5,214,141,0.8)':'rgba(240,70,106,0.8)');
+  chartDistribution=new Chart(canvas,{
+    type:'bar',
+    data:{labels,datasets:[{data:netVals,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Net: ${fmtE(ctx.parsed.y)}`}}},
+      scales:{
+        x:{ticks:{color:'#3d4460',font:{size:9},autoSkip:true,maxTicksLimit:12,maxRotation:45},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:'#3d4460',font:{size:10,family:"'JetBrains Mono',monospace"},callback:v=>(v>=0?'+':'')+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.03)'},border:{display:false}}
+      }
+    }
+  });
 }
 
 // ── PACE & STRATEGY ──
