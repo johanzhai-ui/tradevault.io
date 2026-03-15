@@ -823,8 +823,19 @@ async function doLogin(){
   const btn=document.getElementById('login-btn');
   const err=document.getElementById('login-err');
   if(!email||!pass){showLoginErr('Please enter email and password');return;}
-  btn.textContent='Signing in…';btn.disabled=true;
   err.style.display='none';
+
+  // Demo user — skip Supabase auth entirely, instant load
+  if(email.toLowerCase()==='demo@trpro.app'){
+    if(pass!=='demo1234'){showLoginErr('Incorrect password');return;}
+    // Fake a token payload with demo UUID so isDemoUser() works
+    const fakePayload=btoa(JSON.stringify({sub:DEMO_UUID,role:'anon'}));
+    accessToken='demo.'+fakePayload+'.demo';
+    onLoginSuccess();
+    return;
+  }
+
+  btn.textContent='Signing in…';btn.disabled=true;
   try{
     const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{
       method:'POST',
@@ -1768,6 +1779,7 @@ function showDemoBanner(){
 }
 
 function loadDemoData(){
+  hideLoading();
   // Generate realistic demo warrant trading data
   const now=new Date();
   const year=now.getFullYear();
