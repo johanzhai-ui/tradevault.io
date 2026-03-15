@@ -250,6 +250,8 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .srow .ss{font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-top:2px;}
 .srow input{background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r2);padding:8px 11px;color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;width:140px;text-align:right;}
 .srow input:focus{border-color:var(--grn);}
+textarea{background:var(--bg2);border:0.5px solid var(--line2);border-radius:var(--r2);color:var(--t1);outline:none;}
+textarea:focus{border-color:var(--grn);}
 .del-btn{width:28px;height:28px;border-radius:50%;background:none;border:0.5px solid var(--line);color:var(--t3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .cat-btn{padding:9px 8px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:center;}
 .dir-tag-btn{padding:8px 6px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:center;touch-action:manipulation;}
@@ -516,10 +518,10 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
       <div class="sec" id="sec-pnl">
         <div class="desktop-topbar">
           <h2>P&L Tracker</h2>
-          <button class="btn-primary" onclick="openAddEntry()">+ Add week</button>
+          <button class="btn-primary" onclick="openAddEntry()">+ Add trade</button>
         </div>
         <div style="margin-bottom:10px;" id="m-pnl-header">
-          <div class="sh"><div class="sh-title">Monthly P&L</div><button class="sh-action" onclick="openAddEntry()">+ Add week</button></div>
+          <div class="sh"><div class="sh-title">Monthly P&L</div><button class="sh-action" onclick="openAddEntry()">+ Add trade</button></div>
         </div>
         <div class="pnl-grid">
           <div>
@@ -542,7 +544,10 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
       <div class="sec" id="sec-history">
         <div class="desktop-topbar">
           <div><h2>History</h2><div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="h-count"></div></div>
-          <button class="btn-primary" onclick="openAddEntry()">+ Add week</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-ghost" id="pdf-btn" onclick="showPDFPicker()" title="Export monthly statement">📄 Monthly PDF</button>
+            <button class="btn-primary" onclick="openAddEntry()">+ Add trade</button>
+          </div>
         </div>
         <div id="h-list" style="display:grid;gap:7px;"></div>
         <div class="empty" id="h-empty" style="display:none;"><div class="empty-icon">📋</div>No entries yet.<br>Add your first week in P&L Tracker.</div>
@@ -727,7 +732,8 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
         <span id="net-preview-val" style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;"></span>
       </div>
     </div>
-    <div class="fg"><label>Details <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label><input type="text" id="e-note" placeholder="e.g. Call 320$ · 1,000 warrants"></div>
+    <div class="fg"><label>Trade details <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label><input type="text" id="e-note" placeholder="e.g. Call 320$ · 1,000 warrants"></div>
+    <div class="fg" id="e-journal-wrap"><label>Journal / Notes <span style="color:var(--t3);font-weight:400;font-size:11px;">optional · multi-line</span></label><textarea id="e-journal" rows="3" placeholder="Why did I enter this trade? What did I learn?" style="width:100%;background:var(--bg2);border:0.5px solid var(--line2);border-radius:var(--r2);padding:10px 12px;color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;resize:vertical;line-height:1.5;"></textarea></div>
     <div class="modal-footer">
       <button class="btn-ghost" onclick="closeModal('modal-entry')">Cancel</button>
       <button class="btn-primary" onclick="saveEntry()">Save entry</button>
@@ -763,6 +769,23 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 const SB_URL='https://raouhtxqamcrftnxpvgo.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhb3VodHhxYW1jcmZ0bnhwdmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MDg2OTgsImV4cCI6MjA4ODk4NDY5OH0.eHd2Bt2OtsxOgvymxrnk3_esxLNS-SawARZOzF7XS6A';
 let accessToken=null;
+const SESSION_TIMEOUT=15*60*1000; // 15 minutes
+let sessionTimer=null;
+
+function resetSessionTimer(){
+  clearTimeout(sessionTimer);
+  sessionTimer=setTimeout(()=>{
+    toast('Session expired — please sign in again',4000);
+    setTimeout(doLogout,4000);
+  },SESSION_TIMEOUT);
+}
+
+function startSessionTracking(){
+  resetSessionTimer();
+  ['click','touchstart','keydown','scroll'].forEach(ev=>{
+    document.addEventListener(ev,resetSessionTimer,{passive:true});
+  });
+}
 const DEMO_UUID='b89321c5-178c-4b4a-9557-505f547bf6e0';
 const YOUR_UUID='b780650b-e062-4aac-a9d8-a436cbda42b9';
 
@@ -832,6 +855,7 @@ function onLoginSuccess(){
   if(window.PublicKeyCredential && !localStorage.getItem('faceid_registered')&&!isDemoUser()){
     document.getElementById('setup-faceid-btn').style.display='inline';
   }
+  if(!isDemoUser())startSessionTracking();
   if(isDemoUser()){
     showDemoBanner();
     loadDemoData();
@@ -989,7 +1013,7 @@ async function loadAll(){
     ]);
     entries=e.map(x=>{
       const dir=x.direction||null;
-      return {id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade',direction:dir};
+      return {id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade',direction:dir,journal:x.journal||''};
     });
     positions=p.map(x=>({id:x.id,ticker:x.ticker,name:x.name,type:x.type,shares:parseFloat(x.shares),avg:parseFloat(x.avg_price),current:parseFloat(x.current_price)}));
     dividends=d.map(x=>({id:x.id,ticker:x.ticker,amount:parseFloat(x.amount),date:x.date,note:x.note||''}));
@@ -1164,6 +1188,7 @@ function editEntry(id){
   document.getElementById('e-company').value=e.company||'';
   document.getElementById('e-pnl').value=e.pnl;
   document.getElementById('e-note').value=e.note||'';
+  if(document.getElementById('e-journal'))document.getElementById('e-journal').value=e.journal||'';
   // Restore direction button
   currentDirection=e.direction||null;
   document.querySelectorAll('.dir-tag-btn').forEach(b=>{
@@ -1263,6 +1288,7 @@ async function saveEntry(){
   const pnl=parseFloat(document.getElementById('e-pnl').value);
   const company=document.getElementById('e-company').value.trim();
   const note=document.getElementById('e-note').value.trim();
+  const journal=document.getElementById('e-journal')?document.getElementById('e-journal').value.trim():'';
   const category=currentCategory||'trade';
   const direction=category==='trade'?(currentDirection||null):null;
   if(!date||isNaN(pnl)){toast('Please enter date and amount');return;}
@@ -1271,19 +1297,19 @@ async function saveEntry(){
   toast('Saving…',10000);
   try{
     if(editEntryId){
-      await sbUpdate('entries',editEntryId,{date,pnl,tax,company,note,net_pnl:net,category,direction});
+      await sbUpdate('entries',editEntryId,{date,pnl,tax,company,note,net_pnl:net,category,direction,journal});
       const idx=entries.findIndex(x=>x.id===editEntryId);
-      if(idx>-1)entries[idx]={...entries[idx],date,pnl,tax,company,note,net_pnl:net,category,direction};
+      if(idx>-1)entries[idx]={...entries[idx],date,pnl,tax,company,note,net_pnl:net,category,direction,journal};
       editEntryId=null;
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');toast('Entry updated ✓');
     } else {
       const id=uid();
-      await sbInsert('entries',[{id,date,pnl,note,tax,company,net_pnl:net,category,direction}]);
-      entries.push({id,date,pnl,tax,company,note,net_pnl:net,category,direction});
+      await sbInsert('entries',[{id,date,pnl,note,tax,company,net_pnl:net,category,direction,journal}]);
+      entries.push({id,date,pnl,tax,company,note,net_pnl:net,category,direction,journal});
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');
-      ['e-pnl','e-company','e-note'].forEach(id=>document.getElementById(id).value='');
+      ['e-pnl','e-company','e-note','e-journal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
       document.getElementById('net-preview').style.display='none';
       toast('Entry added ✓');
     }
@@ -1391,7 +1417,14 @@ function renderDashboard(){
     const onTrack=pd<=deadline;
     proj.style.background=onTrack?'rgba(5,214,141,0.07)':'rgba(240,70,106,0.07)';
     proj.style.color=onTrack?'var(--grn)':'var(--red)';
-    proj.innerHTML=`<strong>${onTrack?'On track':'Behind pace'}</strong> — avg ${fmtE(avgW)}/wk → goal ~${pd.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})}. ${weeksLeft} weeks left.`;
+    const reqWk=parseFloat(((goal.total-totalRealPnL)/Math.max(1,weeksLeft)).toFixed(2));
+    proj.style.background=onTrack?'rgba(5,214,141,0.07)':'rgba(240,70,106,0.07)';
+    proj.style.color=onTrack?'var(--grn)':'var(--red)';
+    proj.innerHTML=`<strong>${onTrack?'On track ✓':'Behind pace'}</strong>`
+      +` · Your avg: <strong>${fmtE(avgW)}/wk</strong>`
+      +` · Required: <strong>${fmtE(reqWk,false)}/wk</strong>`
+      +` · Finish: <strong>${pd.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})}</strong>`
+      +` · ${weeksLeft} weeks left`;
   }else{
     proj.style.background='rgba(61,68,96,0.2)';proj.style.color='var(--t3)';
     proj.textContent=weeksLeft+' weeks until deadline. Add P&L entries to see your projection.';
@@ -1653,6 +1686,7 @@ function renderHistory(){
           </div>
           ${e.company?`<div class="hnote" style="color:var(--t2);font-weight:600;">${e.company}</div>`:''}
           ${e.note?`<div class="hnote">${e.note}</div>`:''}
+          ${e.journal?`<div class="hnote" style="color:var(--t2);font-style:italic;">${e.journal.slice(0,80)}${e.journal.length>80?'…':''}</div>`:''}
           ${(e.category==='trade'||!e.category)?`<div class="hnote" style="color:var(--t3);">gain ${fmtE(e.pnl,false)} · tax −${fmtE(e.tax||parseFloat((e.pnl*0.26375+1).toFixed(2)),false)}</div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;margin-right:8px;">
@@ -1874,10 +1908,10 @@ function renderAnalytics(){
             <div style="font-size:13px;font-weight:700;color:${cfg.color};">${cfg.emoji} ${cfg.label}</div>
             <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${s.total} trade${s.total!==1?'s':''}</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;min-width:0;">
             <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Win %</div><div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${s.wr>=50?'var(--grn)':'var(--red)'};">${s.wr}%</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg W</div><div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);">${fmtE(s.avgW,false)}</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg L</div><div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);">−${fmtE(s.avgL,false)}</div></div>
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg W</div><div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fmtE(s.avgW,false)}</div></div>
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg L</div><div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">−${fmtE(s.avgL,false)}</div></div>
           </div>
           <div style="padding-top:8px;border-top:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">Net P&L</span>
@@ -1885,7 +1919,7 @@ function renderAnalytics(){
           </div>
         </div>`;
       }).filter(Boolean).join('');
-      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">${cards}</div>${untaggedCount?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:''}`;
+      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;">${cards}</div>${untaggedCount?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:''}`;
     }
   }
 
@@ -2190,6 +2224,119 @@ function renderStreak(){
       <div style="font-size:10px;color:var(--t3);margin-top:4px;font-family:'JetBrains Mono',monospace;">${bestT.company||bestT.date}</div>
     </div>
   </div>`;
+}
+
+// ── PDF PICKER ──
+function showPDFPicker(){
+  const months=[...new Set(entries.map(e=>e.date.slice(0,7)))].sort((a,b)=>b.localeCompare(a));
+  if(!months.length){toast('No entries to export');return;}
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const opts=months.map(m=>`<option value="${m}">${mn[parseInt(m.slice(5))-1]} ${m.slice(0,4)}</option>`).join('');
+  const pick=document.createElement('div');
+  pick.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;">
+    <div style="background:var(--bg2);border:0.5px solid var(--line2);border-radius:var(--r);padding:24px;width:280px;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:16px;">Select month</div>
+      <select id="pdf-month-select" style="width:100%;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r2);padding:10px;color:var(--t1);font-size:14px;outline:none;margin-bottom:16px;">${opts}</select>
+      <div style="display:flex;gap:8px;">
+        <button onclick="this.closest('div[style]').remove()" style="flex:1;padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:none;color:var(--t2);cursor:pointer;font-size:13px;">Cancel</button>
+        <button onclick="generateMonthlyPDF(document.getElementById('pdf-month-select').value);this.closest('div[style]').remove();" style="flex:1;padding:10px;border-radius:var(--r2);border:none;background:var(--grn);color:#000;font-weight:700;cursor:pointer;font-size:13px;">Generate PDF</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(pick);
+}
+
+// ── PDF MONTHLY STATEMENT ──
+function generateMonthlyPDF(monthKey){
+  const mn=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const monthName=mn[parseInt(monthKey.slice(5))-1]+' '+monthKey.slice(0,4);
+  const monthEntries=[...entries].filter(e=>e.date.slice(0,7)===monthKey).sort((a,b)=>a.date.localeCompare(b.date));
+  const trades=monthEntries.filter(e=>e.category==='trade'||!e.category);
+  const interest=monthEntries.filter(e=>e.category==='interest');
+  const dividends_m=monthEntries.filter(e=>e.category==='dividend');
+  const corrections=monthEntries.filter(e=>e.category==='tax_correction');
+  const totalNet=parseFloat(monthEntries.reduce((s,e)=>s+(e.net_pnl||e.pnl),0).toFixed(2));
+  const totalGross=parseFloat(trades.reduce((s,e)=>s+e.pnl,0).toFixed(2));
+  const totalTax=parseFloat(trades.reduce((s,e)=>s+(e.tax||0),0).toFixed(2));
+  const wins=trades.filter(e=>(e.net_pnl||e.pnl)>0).length;
+  const wr=trades.length?Math.round(wins/trades.length*100):0;
+  const avgW=wins?parseFloat(trades.filter(e=>(e.net_pnl||e.pnl)>0).reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/wins).toFixed(2):0;
+
+  const tagColors={call:'#05d68d',put:'#f0466a',long:'#05d68d',short:'#f0466a',etf:'#4c8dff',stock:'#a855f7'};
+
+  const tradeRows=monthEntries.map(e=>{
+    const net=e.net_pnl||e.pnl;
+    const netColor=net>=0?'#05d68d':'#f0466a';
+    const dirBadge=e.direction?`<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;background:${tagColors[e.direction]||'#3d4460'}20;color:${tagColors[e.direction]||'#7a8099'};">${e.direction.toUpperCase()}</span>`:'';
+    const catBadge=`<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;background:#1c213050;color:#7a8099;">${(e.category||'trade').replace('_',' ')}</span>`;
+    return `<tr style="border-bottom:1px solid #1c2130;">
+      <td style="padding:8px 6px;font-size:11px;color:#7a8099;font-family:monospace;">${e.date}</td>
+      <td style="padding:8px 6px;font-size:12px;font-weight:600;">${e.company||'—'}</td>
+      <td style="padding:8px 6px;">${catBadge} ${dirBadge}</td>
+      <td style="padding:8px 6px;font-size:11px;color:#7a8099;font-family:monospace;">${e.note||'—'}</td>
+      <td style="padding:8px 6px;text-align:right;font-size:11px;color:#7a8099;font-family:monospace;">${e.pnl?(e.category==='trade'?fmtE(e.pnl,false):'—'):'—'}</td>
+      <td style="padding:8px 6px;text-align:right;font-size:11px;color:#f0466a;font-family:monospace;">${e.tax&&e.tax>0?'−'+fmtE(e.tax,false):'—'}</td>
+      <td style="padding:8px 6px;text-align:right;font-size:13px;font-weight:700;color:${netColor};font-family:monospace;">${fmtE(net)}</td>
+    </tr>
+    ${e.journal?`<tr style="border-bottom:1px solid #1c2130;background:#0e111750;"><td></td><td colspan="6" style="padding:4px 6px 8px;font-size:11px;color:#7a8099;font-style:italic;">📝 ${e.journal}</td></tr>`:''}`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1a1a2e;padding:40px;}
+    h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
+    h1 em{font-style:normal;color:#05d68d;}
+    .subtitle{font-size:13px;color:#666;margin-bottom:32px;}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;}
+    .stat{background:#f8f9fc;border-radius:8px;padding:14px 16px;}
+    .stat-label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;}
+    .stat-val{font-size:20px;font-weight:800;font-family:monospace;}
+    table{width:100%;border-collapse:collapse;margin-bottom:24px;}
+    th{padding:10px 6px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#999;border-bottom:2px solid #f0f0f0;}
+    th:last-child,th:nth-last-child(2),th:nth-last-child(3){text-align:right;}
+    tr:hover{background:#f8f9fc;}
+    .footer{margin-top:32px;padding-top:16px;border-top:1px solid #f0f0f0;font-size:11px;color:#999;display:flex;justify-content:space-between;}
+    @media print{body{padding:20px;}}
+  </style>
+  </head><body>
+  <h1>TR <em>Pro</em></h1>
+  <div class="subtitle">Monthly Statement · ${monthName} · Generated ${new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})}</div>
+
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Net P&L</div><div class="stat-val" style="color:${totalNet>=0?'#05d68d':'#f0466a'};">${fmtE(totalNet)}</div></div>
+    <div class="stat"><div class="stat-label">Gross (before tax)</div><div class="stat-val">${fmtE(totalGross,false)}</div></div>
+    <div class="stat"><div class="stat-label">Tax paid</div><div class="stat-val" style="color:#f0466a;">−${fmtE(totalTax,false)}</div></div>
+    <div class="stat"><div class="stat-label">Win rate</div><div class="stat-val" style="color:${wr>=50?'#05d68d':'#f0466a'};">${wr}% (${wins}/${trades.length})</div></div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Date</th><th>Company</th><th>Type</th><th>Details</th>
+      <th style="text-align:right;">Gross</th>
+      <th style="text-align:right;">Tax</th>
+      <th style="text-align:right;">Net P&L</th>
+    </tr></thead>
+    <tbody>${tradeRows}</tbody>
+    <tfoot><tr style="border-top:2px solid #1a1a2e;">
+      <td colspan="4" style="padding:10px 6px;font-weight:700;font-size:13px;">Monthly Total</td>
+      <td style="padding:10px 6px;text-align:right;font-family:monospace;font-size:12px;">${fmtE(totalGross,false)}</td>
+      <td style="padding:10px 6px;text-align:right;font-family:monospace;font-size:12px;color:#f0466a;">−${fmtE(totalTax,false)}</td>
+      <td style="padding:10px 6px;text-align:right;font-weight:800;font-size:14px;color:${totalNet>=0?'#05d68d':'#f0466a'};">${fmtE(totalNet)}</td>
+    </tr></tfoot>
+  </table>
+
+  <div class="footer">
+    <span>TR Pro · Personal Warrant Trading Tracker</span>
+    <span>${monthName} · Goal: ${fmtE(goal.monthly,false)}/month · ${totalNet>=goal.monthly?'✓ Target hit':'Target not reached'}</span>
+  </div>
+  </body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
+  toast('PDF statement ready to print/save ✓');
 }
 
 async function refreshData(){
