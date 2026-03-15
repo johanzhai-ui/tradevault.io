@@ -252,6 +252,14 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .srow input:focus{border-color:var(--grn);}
 .del-btn{width:28px;height:28px;border-radius:50%;background:none;border:0.5px solid var(--line);color:var(--t3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .cat-btn{padding:9px 8px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:center;}
+.dir-tag-btn{padding:8px 6px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:center;touch-action:manipulation;}
+.dir-tag-btn:hover{border-color:var(--line2);color:var(--t1);}
+.dir-tag-btn.active-call{background:rgba(5,214,141,0.15);color:var(--grn);border-color:var(--grn);}
+.dir-tag-btn.active-put{background:rgba(240,70,106,0.15);color:var(--red);border-color:var(--red);}
+.dir-tag-btn.active-long{background:rgba(5,214,141,0.12);color:var(--grn);border-color:var(--grn);}
+.dir-tag-btn.active-short{background:rgba(240,70,106,0.12);color:var(--red);border-color:var(--red);}
+.dir-tag-btn.active-etf{background:rgba(76,141,255,0.15);color:var(--blu);border-color:var(--blu);}
+.dir-tag-btn.active-stock{background:rgba(168,85,247,0.15);color:var(--pur);border-color:var(--pur);}
 .cat-btn:hover{border-color:var(--grn);color:var(--t1);}
 .cat-btn.active{background:var(--grn2);border-color:var(--grn);color:var(--grn);}
 .cat-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-weight:500;display:inline-block;}
@@ -488,6 +496,15 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
           <div class="chart-wrap" style="height:180px;"><canvas id="chart-cum"></canvas></div>
         </div>
 
+        <!-- Quarterly summary on dashboard -->
+        <div class="card" style="margin-bottom:10px;">
+          <div class="sh">
+            <div class="sh-title">Quarterly overview</div>
+            <button class="sh-action" onclick="showSec('analytics',document.querySelectorAll('.snav-btn')[3],'s')">Full analytics →</button>
+          </div>
+          <div id="d-quarterly-mini"></div>
+        </div>
+
         <!-- Streak & Stats -->
         <div class="card" style="margin-bottom:10px;">
           <div class="sh"><div class="sh-title">Streak & Stats</div></div>
@@ -537,18 +554,15 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
           <div><h2>Analytics</h2><div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;">Warrant trading performance breakdown</div></div>
           <button class="btn-ghost" onclick="autoTagAllEntries()" title="Auto-detect Call/Put from trade notes">⚡ Auto-tag directions</button>
         </div>
-        <!-- Call vs Put breakdown -->
+        <!-- Direction / instrument breakdown -->
         <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">Call vs Put performance</div>
-          <div id="a-direction-content"><div class="empty"><div class="empty-icon">📊</div>Add trades with CALL/PUT direction to see breakdown.</div></div>
+          <div class="card-label">Performance by instrument & direction</div>
+          <div id="a-direction-content"><div class="empty"><div class="empty-icon">📊</div>Add trades with instrument tags to see breakdown.</div></div>
         </div>
-        <!-- Trade distribution chart -->
+        <!-- Quarterly view -->
         <div class="card" style="margin-bottom:12px;">
-          <div class="sh">
-            <div class="sh-title">Trade distribution</div>
-            <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">net P&L per trade</div>
-          </div>
-          <div class="chart-wrap" style="height:220px;"><canvas id="chart-distribution"></canvas></div>
+          <div class="card-label">Quarterly performance</div>
+          <div id="a-quarterly-content"></div>
         </div>
         <!-- Top underlyings -->
         <div class="card" style="margin-bottom:12px;">
@@ -681,10 +695,14 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
     <div class="fg"><label>Date</label><input type="date" id="e-date"></div>
     <div class="fg" id="e-company-wrap"><label id="e-company-label">Company / Asset</label><input type="text" id="e-company" placeholder="e.g. Micron Technology"></div>
     <div class="fg" id="e-direction-wrap">
-      <label>Direction <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
-        <button type="button" id="dir-call" onclick="setDirection('call')" style="padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;touch-action:manipulation;">📈 CALL</button>
-        <button type="button" id="dir-put" onclick="setDirection('put')" style="padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:var(--bg3);color:var(--t2);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;touch-action:manipulation;">📉 PUT</button>
+      <label>Instrument / Direction <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px;" id="e-dir-btns">
+        <button type="button" class="dir-tag-btn" data-dir="call" onclick="setDirection('call')">📈 Call</button>
+        <button type="button" class="dir-tag-btn" data-dir="put" onclick="setDirection('put')">📉 Put</button>
+        <button type="button" class="dir-tag-btn" data-dir="long" onclick="setDirection('long')">↑ Long</button>
+        <button type="button" class="dir-tag-btn" data-dir="short" onclick="setDirection('short')">↓ Short</button>
+        <button type="button" class="dir-tag-btn" data-dir="etf" onclick="setDirection('etf')">📊 ETF</button>
+        <button type="button" class="dir-tag-btn" data-dir="stock" onclick="setDirection('stock')">🏢 Stock</button>
       </div>
     </div>
     <div class="fg"><label id="e-pnl-label">TR Gain (€) <span style="color:var(--t3);font-weight:400;font-size:11px;">from Performance screen</span></label><input type="number" id="e-pnl" placeholder="e.g. 12218.60" step="0.01" oninput="updateNetPreview()"></div>
@@ -1092,21 +1110,21 @@ function setCategory(cat, btn){
 }
 
 function setDirection(dir){
-  currentDirection=currentDirection===dir?null:dir; // toggle
-  const callBtn=document.getElementById('dir-call');
-  const putBtn=document.getElementById('dir-put');
-  if(callBtn)callBtn.style.cssText=callBtn.style.cssText.replace(/background:[^;]+/,'').replace(/color:[^;]+/,'').replace(/border-color:[^;]+/,'');
-  if(putBtn)putBtn.style.cssText=putBtn.style.cssText.replace(/background:[^;]+/,'').replace(/color:[^;]+/,'').replace(/border-color:[^;]+/,'');
-  if(currentDirection==='call'&&callBtn){callBtn.style.background='rgba(5,214,141,0.15)';callBtn.style.color='var(--grn)';callBtn.style.borderColor='var(--grn)';}
-  if(currentDirection==='put'&&putBtn){putBtn.style.background='rgba(240,70,106,0.15)';putBtn.style.color='var(--red)';putBtn.style.borderColor='var(--red)';}
+  currentDirection=currentDirection===dir?null:dir;
+  document.querySelectorAll('.dir-tag-btn').forEach(b=>{
+    b.classList.remove('active-call','active-put','active-long','active-short','active-etf','active-stock');
+  });
+  if(currentDirection){
+    const btn=document.querySelector(`.dir-tag-btn[data-dir="${currentDirection}"]`);
+    if(btn)btn.classList.add('active-'+currentDirection);
+  }
 }
 
 function resetDirectionBtns(){
   currentDirection=null;
-  const callBtn=document.getElementById('dir-call');
-  const putBtn=document.getElementById('dir-put');
-  if(callBtn){callBtn.style.background='var(--bg3)';callBtn.style.color='var(--t2)';callBtn.style.borderColor='var(--line2)';}
-  if(putBtn){putBtn.style.background='var(--bg3)';putBtn.style.color='var(--t2)';putBtn.style.borderColor='var(--line2)';}
+  document.querySelectorAll('.dir-tag-btn').forEach(b=>{
+    b.classList.remove('active-call','active-put','active-long','active-short','active-etf','active-stock');
+  });
 }
 
 function openAddEntry(){
@@ -1146,6 +1164,15 @@ function editEntry(id){
   document.getElementById('e-company').value=e.company||'';
   document.getElementById('e-pnl').value=e.pnl;
   document.getElementById('e-note').value=e.note||'';
+  // Restore direction button
+  currentDirection=e.direction||null;
+  document.querySelectorAll('.dir-tag-btn').forEach(b=>{
+    b.classList.remove('active-call','active-put','active-long','active-short','active-etf','active-stock');
+  });
+  if(currentDirection){
+    const btn=document.querySelector(`.dir-tag-btn[data-dir="${currentDirection}"]`);
+    if(btn)btn.classList.add('active-'+currentDirection);
+  }
   updateNetPreview();
   openModal('modal-entry');
 }
@@ -1486,6 +1513,31 @@ function renderDashboard(){
       </div>`;
   }
 
+  // ── QUARTERLY MINI on dashboard ──
+  const qMini=document.getElementById('d-quarterly-mini');
+  if(qMini){
+    const yr=goal.year||new Date().getFullYear();
+    const qs=[{l:'Q1',m:['01','02','03']},{l:'Q2',m:['04','05','06']},{l:'Q3',m:['07','08','09']},{l:'Q4',m:['10','11','12']}];
+    const qT=goal.total/4;
+    const now=new Date();
+    qMini.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">${qs.map(q=>{
+      const qE=sorted.filter(e=>e.date.startsWith(yr)&&q.m.includes(e.date.slice(5,7)));
+      const qN=parseFloat(qE.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+      const hit=qN>=qT;
+      const curM=now.getMonth()+1;
+      const isCur=q.m.map(Number).includes(curM)&&now.getFullYear()===yr;
+      const isFut=Math.min(...q.m.map(Number))>curM&&now.getFullYear()===yr;
+      const c=hit?'var(--grn)':qN>0?'var(--amb)':qN<0?'var(--red)':'var(--t3)';
+      const pct=qT>0?Math.min(100,(qN/qT)*100):0;
+      return `<div style="background:var(--bg2);border:0.5px solid ${isCur?'rgba(5,214,141,0.3)':'var(--line)'};border-radius:var(--r2);padding:10px 12px;text-align:center;">
+        <div style="font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${isCur?'var(--grn)':'var(--t2)'};">${q.l}${isCur?' ●':''}</div>
+        <div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};margin:5px 0;">${isFut?'—':qE.length?fmtE(qN,false):'—'}</div>
+        <div style="height:3px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div style="height:3px;background:${c};width:${pct.toFixed(0)}%;border-radius:99px;"></div></div>
+        <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:${c};margin-top:4px;">${isFut?'upcoming':hit?'Hit ✓':qE.length?pct.toFixed(0)+'%':'no data'}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
   const labels=sorted.map(e=>e.date);
   const goalStart=new Date(goal.deadline.slice(0,4)+'-01-01'),goalEnd=new Date(goal.deadline);
   const totalDays=(goalEnd-goalStart)/86400000;
@@ -1593,7 +1645,11 @@ function renderHistory(){
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             <div class="hdate">${e.date}</div>
             <span class="cat-badge cat-${e.category||'trade'}">${{trade:'Trade',interest:'Interest',dividend:'Dividend',tax_correction:'Tax Correction'}[e.category||'trade']}</span>
-            ${e.direction?`<span style="font-size:10px;padding:2px 7px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-weight:700;background:${e.direction==='call'?'rgba(5,214,141,0.12)':'rgba(240,70,106,0.12)'};color:${e.direction==='call'?'var(--grn)':'var(--red)'};">${e.direction.toUpperCase()}</span>`:''}
+            ${e.direction?(()=>{
+              const dc={call:['rgba(5,214,141,0.12)','var(--grn)'],put:['rgba(240,70,106,0.12)','var(--red)'],long:['rgba(5,214,141,0.10)','var(--grn)'],short:['rgba(240,70,106,0.10)','var(--red)'],etf:['rgba(76,141,255,0.12)','var(--blu)'],stock:['rgba(168,85,247,0.12)','var(--pur)']};
+              const [bg,col]=(dc[e.direction]||['rgba(61,68,96,0.3)','var(--t2)']);
+              return `<span style="font-size:10px;padding:2px 7px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-weight:700;background:${bg};color:${col};">${e.direction.toUpperCase()}</span>`;
+            })():''}
           </div>
           ${e.company?`<div class="hnote" style="color:var(--t2);font-weight:600;">${e.company}</div>`:''}
           ${e.note?`<div class="hnote">${e.note}</div>`:''}
@@ -1735,9 +1791,13 @@ function loadDemoData(){
 
 // ── AUTO-DETECT DIRECTION ──
 function autoDetectDirection(entry){
-  const text=((entry.note||'')+'  '+(entry.company||'')).toLowerCase();
-  if(/call/.test(text)||/long/.test(text))return 'call';
-  if(/put/.test(text)||/short/.test(text))return 'put';
+  const text=((entry.note||'')+'  '+(entry.company||'')+'  '+(entry.category||'')).toLowerCase();
+  if(/\bcall\b/.test(text))return 'call';
+  if(/\bput\b/.test(text))return 'put';
+  if(/\blong\b/.test(text))return 'long';
+  if(/\bshort\b/.test(text))return 'short';
+  if(/\betf\b/.test(text)||/\bfund\b/.test(text))return 'etf';
+  if(/\bstock\b/.test(text)||/\bshare\b/.test(text)||/\baktie\b/.test(text))return 'stock';
   return null;
 }
 
@@ -1776,49 +1836,56 @@ async function quickTagEntry(id, dir){
 }
 
 // ── ANALYTICS ──
-let chartDistribution=null;
 function renderAnalytics(){
   const trades=entries.filter(e=>e.category==='trade'||!e.category);
 
-  // ── CALL vs PUT ──
+  // ── ALL 6 TAG TYPES ──
   const dirEl=document.getElementById('a-direction-content');
   if(dirEl){
-    const calls=trades.filter(e=>e.direction==='call');
-    const puts=trades.filter(e=>e.direction==='put');
-    const untagged=trades.filter(e=>!e.direction);
-    if(!calls.length&&!puts.length){
-      dirEl.innerHTML='<div class="empty" style="padding:20px 0;"><div class="empty-icon">📊</div>Add trades with CALL/PUT direction to see breakdown.</div>';
+    const TAG_CONFIG={
+      call:{emoji:'📈',label:'Call',color:'var(--grn)'},
+      put:{emoji:'📉',label:'Put',color:'var(--red)'},
+      long:{emoji:'↑',label:'Long',color:'var(--grn)'},
+      short:{emoji:'↓',label:'Short',color:'var(--red)'},
+      etf:{emoji:'📊',label:'ETF',color:'var(--blu)'},
+      stock:{emoji:'🏢',label:'Stock',color:'var(--pur)'},
+    };
+    const tagged=trades.filter(e=>e.direction);
+    const untaggedCount=trades.filter(e=>!e.direction).length;
+    if(!tagged.length){
+      dirEl.innerHTML='<div class="empty" style="padding:20px 0;"><div class="empty-icon">📊</div>Tag trades with instrument/direction to see breakdown.</div>';
     } else {
-      function dirStats(arr){
+      function tagStats(arr){
         if(!arr.length)return null;
         const wins=arr.filter(e=>(e.net_pnl||e.pnl)>0);
         const losses=arr.filter(e=>(e.net_pnl||e.pnl)<=0);
         const totalNet=arr.reduce((s,e)=>s+(e.net_pnl||e.pnl),0);
         const avgW=wins.length?wins.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/wins.length:0;
         const avgL=losses.length?Math.abs(losses.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/losses.length):0;
-        const wr=arr.length?Math.round(wins.length/arr.length*100):0;
-        return {total:arr.length,wins:wins.length,losses:losses.length,totalNet,avgW,avgL,wr};
+        return {total:arr.length,wins:wins.length,wr:arr.length?Math.round(wins.length/arr.length*100):0,totalNet,avgW,avgL};
       }
-      const cs=dirStats(calls),ps=dirStats(puts);
-      function dirCard(label,stats,color,emoji){
-        if(!stats)return `<div class="mcard" style="opacity:0.4;"><div class="ml">${emoji} ${label}</div><div class="mv" style="color:var(--t3);">No trades</div></div>`;
-        return `<div class="mcard">
+      const cards=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
+        const arr=trades.filter(e=>e.direction===key);
+        const s=tagStats(arr);
+        if(!s)return '';
+        const c=s.totalNet>=0?'var(--grn)':'var(--red)';
+        return `<div style="background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:12px 14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:14px;font-weight:700;color:${color};">${emoji} ${label}</div>
-            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${stats.total} trades</div>
+            <div style="font-size:13px;font-weight:700;color:${cfg.color};">${cfg.emoji} ${cfg.label}</div>
+            <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${s.total} trade${s.total!==1?'s':''}</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Win rate</div><div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${stats.wr>=50?'var(--grn)':'var(--red)'};">${stats.wr}%</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Avg win</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);">${fmtE(stats.avgW,false)}</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Avg loss</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);">−${fmtE(stats.avgL,false)}</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Win %</div><div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${s.wr>=50?'var(--grn)':'var(--red)'};">${s.wr}%</div></div>
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg W</div><div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);">${fmtE(s.avgW,false)}</div></div>
+            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg L</div><div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);">−${fmtE(s.avgL,false)}</div></div>
           </div>
-          <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">Total net P&L</span>
-            <span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${stats.totalNet>=0?'var(--grn)':'var(--red)'};">${fmtE(stats.totalNet)}</span>
+          <div style="padding-top:8px;border-top:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">Net P&L</span>
+            <span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};">${fmtE(s.totalNet)}</span>
           </div>
         </div>`;
-      }
-      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${dirCard('Call',cs,'var(--grn)','📈')}${dirCard('Put',ps,'var(--red)','📉')}</div>${untagged.length?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untagged.length} trade${untagged.length!==1?'s':''} without direction tag</div>`:''}`;
+      }).filter(Boolean).join('');
+      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">${cards}</div>${untaggedCount?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:''}`;
     }
   }
 
@@ -1879,31 +1946,73 @@ function renderAnalytics(){
     }
   }
 
-  // ── DISTRIBUTION CHART ──
-  if(chartDistribution)chartDistribution.destroy();
-  const canvas=document.getElementById('chart-distribution');
-  if(!canvas)return;
-  if(!trades.length){
-    const ctx=canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    return;
-  }
-  const netVals=trades.map(e=>parseFloat((e.net_pnl||e.pnl).toFixed(2)));
-  const labels=trades.map((e,i)=>`#${i+1} ${e.company||e.date}`);
-  const colors=netVals.map(v=>v>=0?'rgba(5,214,141,0.8)':'rgba(240,70,106,0.8)');
-  chartDistribution=new Chart(canvas,{
-    type:'bar',
-    data:{labels,datasets:[{data:netVals,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Net: ${fmtE(ctx.parsed.y)}`}}},
-      scales:{
-        x:{ticks:{color:'#3d4460',font:{size:9},autoSkip:true,maxTicksLimit:12,maxRotation:45},grid:{display:false},border:{display:false}},
-        y:{ticks:{color:'#3d4460',font:{size:10,family:"'JetBrains Mono',monospace"},callback:v=>(v>=0?'+':'')+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.03)'},border:{display:false}}
-      }
-    }
-  });
-}
+  // ── QUARTERLY VIEW ──
+  const qEl=document.getElementById('a-quarterly-content');
+  if(qEl){
+    const year=goal.year||new Date().getFullYear();
+    const quarters=[
+      {label:'Q1',months:['01','02','03'],period:'Jan–Mar'},
+      {label:'Q2',months:['04','05','06'],period:'Apr–Jun'},
+      {label:'Q3',months:['07','08','09'],period:'Jul–Sep'},
+      {label:'Q4',months:['10','11','12'],period:'Oct–Dec'},
+    ];
+    const qTarget=goal.total/4;
+    const allSorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
+    let cumulative=0;
+    const now=new Date();
+    const curMonth=now.getMonth()+1;
 
+    const qCards=quarters.map(q=>{
+      const qEntries=allSorted.filter(e=>e.date.startsWith(year)&&q.months.includes(e.date.slice(5,7)));
+      const qNet=parseFloat(qEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+      cumulative+=qNet;
+      const qTrades=qEntries.filter(e=>e.category==='trade'||!e.category);
+      const qWins=qTrades.filter(e=>(e.net_pnl||e.pnl)>0).length;
+      const pct=qTarget>0?(qNet/qTarget)*100:0;
+      const hit=qNet>=qTarget;
+      const partial=qNet>0&&!hit;
+      const qMonthNums=q.months.map(Number);
+      const isCurrent=qMonthNums.includes(curMonth)&&now.getFullYear()===year;
+      const isFuture=Math.min(...qMonthNums)>curMonth&&now.getFullYear()===year;
+      const statusColor=hit?'var(--grn)':partial?'var(--amb)':qNet<0?'var(--red)':'var(--t3)';
+      const statusLabel=hit?'Target hit ✓':partial?'In progress':qNet<0&&qEntries.length?'Below target':isFuture?'Upcoming':'No data yet';
+      const barW=Math.min(100,Math.abs(pct));
+      const borderStyle=isCurrent?'border:0.5px solid rgba(5,214,141,0.4);':'border:0.5px solid var(--line);';
+
+      let html='<div style="background:var(--bg2);'+borderStyle+'border-radius:var(--r2);padding:14px 16px;">';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+      html+='<div>';
+      html+='<div style="display:flex;align-items:center;gap:8px;">';
+      html+='<span style="font-size:16px;font-weight:800;font-family:JetBrains Mono,monospace;">'+q.label+'</span>';
+      html+='<span style="font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;">'+q.period+' '+year+'</span>';
+      if(isCurrent)html+='<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:rgba(5,214,141,0.12);color:var(--grn);font-weight:700;">NOW</span>';
+      html+='</div>';
+      html+='<div style="font-size:10px;color:var(--t3);font-family:JetBrains Mono,monospace;margin-top:3px;">'+qTrades.length+' trades · '+(qTrades.length?Math.round(qWins/qTrades.length*100):0)+'% win rate</div>';
+      html+='</div>';
+      html+='<div style="text-align:right;">';
+      html+='<div style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+statusColor+';">'+(qEntries.length?fmtE(qNet):'—')+'</div>';
+      html+='<div style="font-size:10px;font-family:JetBrains Mono,monospace;color:'+statusColor+';margin-top:2px;">'+statusLabel+'</div>';
+      html+='</div></div>';
+
+      if(qEntries.length){
+        html+='<div style="position:relative;height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;">';
+        html+='<div style="height:6px;border-radius:99px;background:'+statusColor+';width:'+barW.toFixed(1)+'%;transition:width 0.5s;"></div>';
+        html+='</div>';
+        html+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-family:JetBrains Mono,monospace;color:var(--t3);">';
+        html+='<span>Target: '+fmtE(qTarget,false)+'</span>';
+        html+='<span style="color:'+statusColor+';">'+pct.toFixed(0)+'%</span>';
+        html+='<span>Cum: '+fmtE(cumulative)+'</span>';
+        html+='</div>';
+      } else {
+        html+='<div style="font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;">'+(isFuture?'Starts '+q.months[0]+'/'+year:'No entries yet')+'</div>';
+      }
+      html+='</div>';
+      return html;
+    });
+
+    qEl.innerHTML='<div style="display:grid;gap:10px;">'+qCards.join('')+'</div>';
+  }
+}
 // ── PACE & STRATEGY ──
 function renderPaceCard(){
   const el=document.getElementById('d-pace-card');
