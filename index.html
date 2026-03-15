@@ -1387,10 +1387,12 @@ function renderDashboard(){
   let cum=0;
   const cumData=sorted.map(e=>{cum+=(e.net_pnl!=null?e.net_pnl:e.pnl);return parseFloat(cum.toFixed(2));});
   const totalRealPnL=cumData.length?cumData[cumData.length-1]:0;
-  const avgW=sorted.length?sorted.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/sorted.length:0;
+  // Count only weeks that had trades (not all elapsed weeks)
+  const tradedWksSet=new Set(sorted.map(e=>{const wi=getWeekNum(e.date);return wi.year+'-W'+String(wi.week).padStart(2,'0');}));
+  const avgW=tradedWksSet.size>0?sorted.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/tradedWksSet.size:0;
   const wins=sorted.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length,losses=sorted.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<0).length;
 
-  const tag=positions.length+' positions · '+sorted.length+' weeks tracked';
+  const tag=sorted.filter(e=>e.category==='trade'||!e.category).length+' trades · '+tradedWksSet.size+' weeks';
   ['d-tagline','m-tagline'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=tag;});
   document.getElementById('d-networth').textContent=fmtE(totalRealPnL,false);
   const divBadge=document.getElementById('d-div-badge');if(divBadge)divBadge.textContent=fmtE(totalDivs,false);
@@ -2085,12 +2087,22 @@ function renderPaceCard(){
   const reqPerDay=tradingDaysLeft>0?gap/tradingDaysLeft:0;
   const reqPerMonth=monthsLeft>0?gap/monthsLeft:0;
 
-  // Actual avg per week (last 4 weeks for recency)
-  const fourWeeksAgo=new Date(today);fourWeeksAgo.setDate(today.getDate()-28);
-  const recentEntries=sorted.filter(e=>new Date(e.date)>=fourWeeksAgo);
-  const recentNet=recentEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
-  const avgWeekRecent=recentNet/4;
-  const avgWeekAll=sorted.length>0?totalNet/(Math.max(1,(today-new Date(sorted[0].date))/(7*24*3600*1000))):0;
+  // Actual avg per week — count only weeks that had at least one trade (Mon-Fri)
+  // Get unique ISO week keys that have entries
+  const tradedWeeks=new Set(sorted.map(e=>{
+    const wi=getWeekNum(e.date);
+    return wi.year+'-W'+String(wi.week).padStart(2,'0');
+  }));
+  const numTradedWeeks=Math.max(1,tradedWeeks.size);
+  const avgWeekAll=totalNet/numTradedWeeks;
+
+  // Last 4 traded weeks for recent trend
+  const recentWeeks=[...tradedWeeks].sort().slice(-4);
+  const recentNet=sorted.filter(e=>{
+    const wi=getWeekNum(e.date);
+    return recentWeeks.includes(wi.year+'-W'+String(wi.week).padStart(2,'0'));
+  }).reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+  const avgWeekRecent=recentNet/Math.max(1,recentWeeks.length);
 
   // On track?
   const onTrack=avgWeekAll>=reqPerWeek||ahead;
@@ -2233,16 +2245,17 @@ function showPDFPicker(){
   const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const opts=months.map(m=>`<option value="${m}">${mn[parseInt(m.slice(5))-1]} ${m.slice(0,4)}</option>`).join('');
   const pick=document.createElement('div');
-  pick.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;">
-    <div style="background:var(--bg2);border:0.5px solid var(--line2);border-radius:var(--r);padding:24px;width:280px;">
+  pick.id='pdf-picker-overlay';
+  pick.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;';
+  pick.innerHTML=`<div style="background:var(--bg2);border:0.5px solid var(--line2);border-radius:var(--r);padding:24px;width:280px;">
       <div style="font-size:15px;font-weight:700;margin-bottom:16px;">Select month</div>
       <select id="pdf-month-select" style="width:100%;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r2);padding:10px;color:var(--t1);font-size:14px;outline:none;margin-bottom:16px;">${opts}</select>
       <div style="display:flex;gap:8px;">
-        <button onclick="this.closest('div[style]').remove()" style="flex:1;padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:none;color:var(--t2);cursor:pointer;font-size:13px;">Cancel</button>
-        <button onclick="generateMonthlyPDF(document.getElementById('pdf-month-select').value);this.closest('div[style]').remove();" style="flex:1;padding:10px;border-radius:var(--r2);border:none;background:var(--grn);color:#000;font-weight:700;cursor:pointer;font-size:13px;">Generate PDF</button>
+        <button onclick="document.getElementById('pdf-picker-overlay').remove()" style="flex:1;padding:10px;border-radius:var(--r2);border:0.5px solid var(--line2);background:none;color:var(--t2);cursor:pointer;font-size:13px;touch-action:manipulation;">Cancel</button>
+        <button onclick="generateMonthlyPDF(document.getElementById('pdf-month-select').value);document.getElementById('pdf-picker-overlay').remove();" style="flex:1;padding:10px;border-radius:var(--r2);border:none;background:var(--grn);color:#000;font-weight:700;cursor:pointer;font-size:13px;touch-action:manipulation;">Generate PDF</button>
       </div>
-    </div>
-  </div>`;
+    </div>`;
+  pick.addEventListener('click',e=>{if(e.target===pick)pick.remove();});
   document.body.appendChild(pick);
 }
 
