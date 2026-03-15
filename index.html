@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TR Pro">
+<meta name="apple-mobile-web-app-title" content="TradeVault">
 <meta name="theme-color" content="#080a0f">
-<title>TR Tracker Pro</title>
+<title>TradeVault</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -318,15 +318,31 @@ textarea:focus{border-color:var(--grn);}
 
 .divider{height:0.5px;background:var(--line);margin:4px 0 14px;}
 </style>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23080a0f'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%2305d68d' stroke-width='1.5' stroke-dasharray='50 25' stroke-dashoffset='15'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%230e1117'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='%2305d68d' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='%2305d68d' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpolyline points='11,19 14,16 17,17 21,12' fill='none' stroke='%23eef0f5' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
 <body>
 <!-- LOGIN SCREEN -->
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--bg0);z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:32px;">
   <div style="width:100%;max-width:360px;">
     <div style="text-align:center;margin-bottom:40px;">
-      <div style="font-size:36px;margin-bottom:12px;">📈</div>
-      <h1 style="font-size:26px;font-weight:700;letter-spacing:-0.5px;">TR <span style="color:var(--grn);">Pro</span></h1>
-      <div style="font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:4px;">Personal P&L Tracker</div>
+      <div style="margin-bottom:12px;">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <rect width="56" height="56" rx="13" fill="#080a0f"/>
+          <circle cx="28" cy="28" r="20" fill="none" stroke="#1c2130" stroke-width="5"/>
+          <circle cx="28" cy="28" r="20" fill="none" stroke="#05d68d" stroke-width="2" stroke-dasharray="90 40" stroke-dashoffset="28"/>
+          <circle cx="28" cy="28" r="13" fill="#0e1117" stroke="#242b3d" stroke-width="1"/>
+          <line x1="28" y1="20" x2="28" y2="36" stroke="#05d68d" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="20" y1="28" x2="36" y2="28" stroke="#05d68d" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="28" cy="9"  r="3" fill="#05d68d"/>
+          <circle cx="47" cy="28" r="3" fill="#05d68d"/>
+          <circle cx="28" cy="47" r="3" fill="#05d68d"/>
+          <circle cx="9"  cy="28" r="3" fill="#05d68d"/>
+          <polyline points="20,33 24,28 28,31 33,22 39,19" fill="none" stroke="#eef0f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="39" cy="19" r="2.5" fill="#eef0f5"/>
+        </svg>
+      </div>
+      <h1 style="font-size:26px;font-weight:700;letter-spacing:-0.5px;">Trade<span style="color:var(--grn);">Vault</span></h1>
+      <div style="font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:4px;">Personal Trading Journal</div>
     </div>
 
     <!-- Face ID button -->
@@ -370,13 +386,13 @@ textarea:focus{border-color:var(--grn);}
 
 <div class="layout" id="app-layout" style="display:none;">
 <div class="demo-banner" id="demo-banner" style="display:none;">
-  ⚡ Demo Mode — sample data only · <a href="#" onclick="doLogout();return false;" style="color:var(--amb);text-decoration:underline;">Sign out</a>
+  ⚡ TradeVault Demo — sample data only · <a href="#" onclick="doLogout();return false;" style="color:var(--amb);text-decoration:underline;">Sign out</a>
 </div>
 
   <!-- TOP NAVBAR (desktop only) -->
   <header class="top-navbar">
     <div class="top-navbar-inner">
-      <div class="top-navbar-logo">TR <em>Pro</em></div>
+      <div class="top-navbar-logo">Trade<em>Vault</em></div>
       <nav class="top-navbar-nav">
         <button class="snav-btn active" onclick="showSec('dashboard',this,'s')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -424,8 +440,8 @@ textarea:focus{border-color:var(--grn);}
     <!-- Mobile topbar -->
     <div class="mobile-topbar">
       <div>
-        <h1>TR <em>Pro</em></h1>
-        <div class="tagline" id="m-tagline" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">P&L · History · Dashboard</div>
+        <h1>Trade<em>Vault</em></h1>
+        <div class="tagline" id="m-tagline" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">TradeVault</div>
       </div>
       <div style="display:flex;gap:8px;">
         <button class="icon-btn" id="refresh-btn" onclick="refreshData()" title="Sync latest data">
@@ -444,7 +460,7 @@ textarea:focus{border-color:var(--grn);}
         <div class="desktop-topbar">
           <div>
             <h2>Dashboard</h2>
-            <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="d-tagline">Warrant Trading Performance</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;" id="d-tagline">Personal Trading Journal</div>
           </div>
           <div class="topbar-actions"></div>
         </div>
@@ -2313,7 +2329,7 @@ function generateMonthlyPDF(monthKey){
     @media print{body{padding:20px;}}
   </style>
   </head><body>
-  <h1>TR <em>Pro</em></h1>
+  <h1>Trade<em>Vault</em></h1>
   <div class="subtitle">Monthly Statement · ${monthName} · Generated ${new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})}</div>
 
   <div class="stat-grid">
@@ -2340,7 +2356,7 @@ function generateMonthlyPDF(monthKey){
   </table>
 
   <div class="footer">
-    <span>TR Pro · Personal Warrant Trading Tracker</span>
+    <span>TradeVault · Personal Trading Journal</span>
     <span>${monthName} · Goal: ${fmtE(goal.monthly,false)}/month · ${totalNet>=goal.monthly?'✓ Target hit':'Target not reached'}</span>
   </div>
   </body></html>`;
