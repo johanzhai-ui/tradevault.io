@@ -339,7 +339,7 @@ textarea:focus{border-color:var(--grn);}
 .empty{text-align:center;padding:36px 20px;color:var(--t3);font-size:12px;font-family:'JetBrains Mono',monospace;line-height:1.8;}
 /* ── MOBILE DASHBOARD ORDER ── */
 @media(max-width:768px){
-  #sec-dashboard{display:flex;flex-direction:column;}
+  #sec-dashboard.active{display:flex;flex-direction:column;}
   .desktop-topbar{order:-10;}
   #d-hero-card{order:1;}
   #d-monthly-target{order:2;}
@@ -356,6 +356,10 @@ textarea:focus{border-color:var(--grn);}
 @media(min-width:769px){
   #d-weekly-summary-mobile{display:none!important;}
 }
+/* Prevent euro symbol wrapping in quarterly mini cards */
+#d-quarterly-mini [style*="font-size:14px"],
+#d-quarterly-mini .mcard .mv,
+#d-quarterly-card [style*="font-size:14px"]{white-space:nowrap;}
 
 .empty-icon{font-size:28px;margin-bottom:10px;}
 
@@ -2040,7 +2044,7 @@ function renderDashboard(){
       const pct=qT>0?Math.min(100,(qN/qT)*100):0;
       return `<div style="background:var(--bg2);border:0.5px solid ${isCur?'rgba(5,214,141,0.3)':'var(--line)'};border-radius:var(--r2);padding:10px 12px;text-align:center;">
         <div style="font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${isCur?'var(--grn)':'var(--t2)'};">${q.l}${isCur?' ●':''}</div>
-        <div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};margin:5px 0;">${isFut?'—':qE.length?fmtE(qN,false):'—'}</div>
+        <div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};margin:5px 0;white-space:nowrap;">${isFut?'—':qE.length?fmtE(qN,false):'—'}</div>
         <div style="height:3px;background:var(--bg3);border-radius:99px;overflow:hidden;"><div style="height:3px;background:${c};width:${pct.toFixed(0)}%;border-radius:99px;"></div></div>
         <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:${c};margin-top:4px;">${isFut?'upcoming':hit?'Hit ✓':qE.length?pct.toFixed(0)+'%':'no data'}</div>
       </div>`;
