@@ -1166,7 +1166,7 @@ let riskSettings={dailyCap:0,consecAlert:3};
 let currentSetup=null, currentMood=null;
 let weekOffset=0; // 0=current week, -1=last week, etc.
 
-const iso=d=>d.toISOString().split('T')[0];
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
 const isMobile=()=>window.innerWidth<=768;
 window.addEventListener('resize',()=>{if(!loading)render();});
