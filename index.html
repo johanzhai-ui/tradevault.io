@@ -342,24 +342,19 @@ textarea:focus{border-color:var(--grn);}
   #sec-dashboard.active{display:flex;flex-direction:column;}
   .desktop-topbar{order:-10;}
   #d-hero-card{order:1;}
-  #d-monthly-target{order:2;}
-  #d-weekly-summary-mobile{order:3;}
-  #d-metrics{order:4;}
-  #d-cum-card{order:5;}
-  #d-quarterly-card{order:6;}
-  #d-streak-card{order:7;}
-  #d-yearly-goal-card{order:8;}
-  #d-pace-wrapper{order:9;}
-  #d-daily-cap{order:10;}
+  #d-weekly-summary-mobile{order:2;}
+  #d-metrics{order:3;}
+  #d-streak-card{order:4;}
+  #d-daily-cap{order:5;}
 }
 /* Hide mobile-only weekly summary on desktop */
 @media(min-width:769px){
   #d-weekly-summary-mobile{display:none!important;}
 }
 /* Prevent euro symbol wrapping in quarterly mini cards */
-#d-quarterly-mini [style*="font-size:14px"],
-#d-quarterly-mini .mcard .mv,
-#d-quarterly-card [style*="font-size:14px"]{white-space:nowrap;}
+#g-quarterly-mini [style*="font-size:14px"],
+#g-quarterly-mini .mcard .mv,
+#g-quarterly-card [style*="font-size:14px"]{white-space:nowrap;}
 
 .empty-icon{font-size:28px;margin-bottom:10px;}
 
@@ -478,6 +473,12 @@ textarea:focus{border-color:var(--grn);}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           Dashboard
         </button>
+        <button class="snav-btn" onclick="showSec('goals',this,'s')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>
+          </svg>
+          Goals
+        </button>
         <button class="snav-btn" onclick="showSec('pnl',this,'s')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 7 21 7 21 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
           P&L
@@ -567,9 +568,6 @@ textarea:focus{border-color:var(--grn);}
           </div>
         </div>
 
-        <!-- Monthly target -->
-        <div class="card" style="margin-bottom:10px;" id="d-monthly-target"></div>
-
         <!-- Mobile-only: Weekly Summary (3 numbers, no day grid) -->
         <div class="card" id="d-weekly-summary-mobile" style="margin-bottom:10px;">
           <div class="sh"><div class="sh-title" id="d-mob-week-title">This week</div></div>
@@ -579,8 +577,45 @@ textarea:focus{border-color:var(--grn);}
         <!-- 4 key metric cards -->
         <div class="metrics-row" id="d-metrics" style="grid-template-columns:1fr 1fr;margin-bottom:10px;"></div>
 
+        <!-- Streak & Stats -->
+        <div class="card" id="d-streak-card" style="margin-bottom:10px;">
+          <div class="sh"><div class="sh-title">Streak & Stats</div></div>
+          <div id="d-streak-content"></div>
+        </div>
+      </div>
+
+      <!-- ── GOALS ── -->
+      <div class="sec" id="sec-goals">
+        <div class="desktop-topbar">
+          <h2>Goals</h2>
+          <div style="font-size:12px;color:var(--t2);margin-top:3px;font-family:'JetBrains Mono',monospace;">Progress toward your targets</div>
+        </div>
+
+        <!-- Monthly target -->
+        <div class="card" style="margin-bottom:10px;" id="g-monthly-target"></div>
+
+        <!-- Yearly goal bar -->
+        <div class="card" id="g-yearly-goal-card" style="margin-bottom:10px;">
+          <div class="card-label">Yearly goal — <span id="g-goal-pct" style="color:var(--grn);">0%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+            <span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="g-goal-earned">0 €</span>
+            <span style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;" id="g-goal-remaining"></span>
+          </div>
+          <div class="gbar-track"><div class="gbar-fill" id="g-gbar" style="width:0%;background:var(--grn);"></div></div>
+          <div class="projection" id="g-projection" style="margin-top:8px;font-size:10px;"></div>
+        </div>
+
+        <!-- Pace & Strategy (collapsed by default) -->
+        <div class="card" id="g-pace-wrapper" style="margin-bottom:10px;padding:0;overflow:hidden;">
+          <div onclick="togglePaceCard()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;">
+            <div class="card-label" style="margin-bottom:0;">Pace & Strategy</div>
+            <svg id="g-pace-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px;color:var(--t3);transition:transform 0.2s;flex-shrink:0;"><path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div id="g-pace-card" style="display:none;padding:0 18px 14px;"></div>
+        </div>
+
         <!-- Cumulative chart -->
-        <div class="card" id="d-cum-card" style="margin-bottom:10px;">
+        <div class="card" id="g-cum-card" style="margin-bottom:10px;">
           <div class="sh">
             <div class="sh-title">Cumulative P&L vs goal pace</div>
             <div style="display:flex;gap:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);">
@@ -588,42 +623,16 @@ textarea:focus{border-color:var(--grn);}
               <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:2px;background:var(--blu);display:inline-block;border-radius:2px;opacity:0.6;"></span>goal pace</span>
             </div>
           </div>
-          <div class="chart-wrap" style="height:180px;"><canvas id="chart-cum"></canvas></div>
+          <div class="chart-wrap" style="height:180px;"><canvas id="chart-cum-goals"></canvas></div>
         </div>
 
-        <!-- Quarterly summary on dashboard -->
-        <div class="card" id="d-quarterly-card" style="margin-bottom:10px;">
+        <!-- Quarterly overview -->
+        <div class="card" id="g-quarterly-card" style="margin-bottom:10px;">
           <div class="sh">
             <div class="sh-title">Quarterly overview</div>
-            <button class="sh-action" onclick="showSec('analytics',document.querySelectorAll('.snav-btn')[3],'s')">Full analytics →</button>
+            <button class="sh-action" onclick="showSec('analytics',document.querySelectorAll('.snav-btn')[4],'s')">Full analytics →</button>
           </div>
-          <div id="d-quarterly-mini"></div>
-        </div>
-
-        <!-- Streak & Stats -->
-        <div class="card" id="d-streak-card" style="margin-bottom:10px;">
-          <div class="sh"><div class="sh-title">Streak & Stats</div></div>
-          <div id="d-streak-content"></div>
-        </div>
-
-        <!-- Yearly goal -->
-        <div class="card" id="d-yearly-goal-card" style="margin-bottom:10px;">
-          <div class="card-label">Yearly goal — <span id="d-goal-pct" style="color:var(--grn);">0%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-            <span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="d-goal-earned">0 €</span>
-            <span style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;" id="d-goal-remaining"></span>
-          </div>
-          <div class="gbar-track"><div class="gbar-fill" id="d-gbar" style="width:0%;background:var(--grn);"></div></div>
-          <div class="projection" id="d-projection" style="margin-top:8px;font-size:10px;"></div>
-        </div>
-
-        <!-- Pace & Strategy card (collapsed by default) -->
-        <div class="card" id="d-pace-wrapper" style="margin-bottom:10px;padding:0;overflow:hidden;">
-          <div id="d-pace-toggle" onclick="togglePaceCard()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;">
-            <div class="card-label" style="margin-bottom:0;">Pace & Strategy</div>
-            <svg id="d-pace-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px;color:var(--t3);transition:transform 0.2s;flex-shrink:0;"><path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div id="d-pace-card" style="display:none;padding:0 18px 14px;"></div>
+          <div id="g-quarterly-mini"></div>
         </div>
       </div>
 
@@ -801,6 +810,12 @@ textarea:focus{border-color:var(--grn);}
     <button class="mnav-btn active" onclick="showSec('dashboard',this,'m')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       Dashboard
+    </button>
+    <button class="mnav-btn" onclick="showSec('goals',this,'m')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>
+      </svg>
+      Goals
     </button>
     <button class="mnav-btn" onclick="showSec('pnl',this,'m')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 7 21 7 21 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1350,7 +1365,7 @@ function showSec(id,btn,type){
   document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const idx=['dashboard','pnl','history','analytics','settings'].indexOf(id);
+  const idx=['dashboard','goals','pnl','history','analytics','settings'].indexOf(id);
   if(idx>-1){
     document.querySelectorAll('.snav-btn')[idx].classList.add('active');
     document.querySelectorAll('.mnav-btn')[idx].classList.add('active');
@@ -1358,11 +1373,12 @@ function showSec(id,btn,type){
   // Scroll to top on section change
   window.scrollTo({top:0,behavior:'instant'});
   // Re-render charts after section is visible — charts rendered while display:none have zero size
-  if(id==='dashboard'||id==='pnl'){
+  if(id==='dashboard'||id==='pnl'||id==='goals'){
     requestAnimationFrame(()=>{
       try{
-        if(id==='dashboard'){renderDashboard();renderStreak();renderPaceCard();}
+        if(id==='dashboard'){renderDashboard();renderStreak();}
         if(id==='pnl'){renderPnL();}
+        if(id==='goals'){renderGoals();renderPaceCard();}
       }catch(e){console.error('Section render:',e);}
     });
   }
@@ -1793,8 +1809,8 @@ function exportCSV(){
   a.download='tr_tracker_'+iso(new Date())+'.csv';a.click();toast('CSV downloaded');
 }
 
-let chartCum,chartMonthly;
-function render(){renderDashboard();renderPnL();renderHistory();renderStreak();renderPaceCard();renderAnalytics();}
+let chartCum,chartMonthly,chartCumGoals;
+function render(){renderDashboard();renderGoals();renderPnL();renderHistory();renderStreak();renderPaceCard();renderAnalytics();}
 
 function renderDashboard(){
   const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
@@ -1804,57 +1820,17 @@ function renderDashboard(){
   let cum=0;
   const cumData=sorted.map(e=>{cum+=(e.net_pnl!=null?e.net_pnl:e.pnl);return parseFloat(cum.toFixed(2));});
   const totalRealPnL=cumData.length?cumData[cumData.length-1]:0;
-  // Count only weeks that had trades (not all elapsed weeks)
   const tradedWksSet=new Set(sorted.map(e=>{const wi=getWeekNum(e.date);return wi.year+'-W'+String(wi.week).padStart(2,'0');}));
-  const avgW=tradedWksSet.size>0?sorted.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/tradedWksSet.size:0;
-  const wins=sorted.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length,losses=sorted.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<0).length;
 
   const tag=sorted.filter(e=>e.category==='trade'||!e.category).length+' trades · '+tradedWksSet.size+' weeks';
   ['d-tagline','m-tagline'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=tag;});
   document.getElementById('d-networth').textContent=fmtE(totalRealPnL,false);
   const divBadge=document.getElementById('d-div-badge');if(divBadge)divBadge.textContent=fmtE(totalDivs,false);
 
-  const pct=Math.max(0,Math.min(100,(totalRealPnL/goal.total)*100));
-  const bc=pct>=100?'#05d68d':pct>=50?'#05d68d':pct>=25?'#f5a623':'#f0466a';
-  document.getElementById('d-goal-earned').textContent=fmtE(totalRealPnL,false);
-  document.getElementById('d-goal-pct').textContent=pct.toFixed(1)+'%';
-  document.getElementById('d-goal-pct').style.color=bc;
-  document.getElementById('d-gbar').style.width=pct.toFixed(1)+'%';
-  document.getElementById('d-gbar').style.background=bc;
-  document.getElementById('d-goal-remaining').textContent=fmtE(Math.max(0,goal.total-totalRealPnL),false)+' left  ·  by '+goal.deadline;
-  document.getElementById('sf-goal-text').textContent=fmtE(totalRealPnL,false)+' / '+goal.total.toLocaleString('de-DE')+' €';
-
-  document.getElementById('sf-bar').style.width=pct.toFixed(1)+'%';
-  document.getElementById('sf-bar').style.background=bc;
-
-  const today=new Date(),deadline=new Date(goal.deadline);
-  const weeksLeft=Math.max(0,Math.ceil((deadline-today)/(7*24*3600*1000)));
-  const proj=document.getElementById('d-projection');
-  if(sorted.length>=2&&avgW>0){
-    const wn=(goal.total-totalRealPnL)/avgW;
-    const pd=new Date(today.getTime()+wn*7*24*3600*1000);
-    const onTrack=pd<=deadline;
-    proj.style.background=onTrack?'rgba(5,214,141,0.07)':'rgba(240,70,106,0.07)';
-    proj.style.color=onTrack?'var(--grn)':'var(--red)';
-    const reqWk=parseFloat(((goal.total-totalRealPnL)/Math.max(1,weeksLeft)).toFixed(2));
-    proj.style.background=onTrack?'rgba(5,214,141,0.07)':'rgba(240,70,106,0.07)';
-    proj.style.color=onTrack?'var(--grn)':'var(--red)';
-    proj.innerHTML=`<strong>${onTrack?'On track ✓':'Behind pace'}</strong>`
-      +` · Your avg: <strong>${fmtE(avgW)}/wk</strong>`
-      +` · Required: <strong>${fmtE(reqWk,false)}/wk</strong>`
-      +` · Finish: <strong>${pd.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})}</strong>`
-      +` · ${weeksLeft} weeks left`;
-  }else{
-    proj.style.background='rgba(61,68,96,0.2)';proj.style.color='var(--t3)';
-    proj.textContent=weeksLeft+' weeks until deadline. Add P&L entries to see your projection.';
-  }
-
   // ── WARRANT PERFORMANCE METRICS ──
   const trades=sorted.filter(e=>e.category==='trade'||!e.category);
   const totalGross=trades.reduce((s,e)=>s+e.pnl,0);
   const totalTax=sorted.reduce((s,e)=>s+(e.tax||0),0);
-  const totalInterest=sorted.filter(e=>e.category==='interest').reduce((s,e)=>s+e.pnl,0);
-  const totalDivsPnL=sorted.filter(e=>e.category==='dividend').reduce((s,e)=>s+e.pnl,0);
 
   // Win/loss split
   const winTrades=trades.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0);
@@ -1864,7 +1840,7 @@ function renderDashboard(){
   const avgWin=winTrades.length?winTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/winTrades.length:0;
   const avgLoss=lossTrades.length?Math.abs(lossTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/lossTrades.length):0;
 
-  // Expectancy = (win% × avg win) - (loss% × avg loss)
+  // Expectancy
   const expectancy=parseFloat(((winRate*avgWin)-(lossRate*avgLoss)).toFixed(2));
   const expEl=document.getElementById('d-expectancy');
   const expLbl=document.getElementById('d-expectancy-label');
@@ -1886,23 +1862,12 @@ function renderDashboard(){
   const grossBadge=document.getElementById('d-gross-badge');
   if(grossBadge) grossBadge.textContent=`Gross ${fmtE(totalGross,false)} · Tax −${fmtE(totalTax,false)}`;
 
-  // Best & worst trade
-  const bestT=trades.length?trades.reduce((b,e)=>(e.net_pnl||e.pnl)>(b.net_pnl||b.pnl)?e:b,trades[0]):null;
-  const worstT=trades.length?trades.reduce((w,e)=>(e.net_pnl||e.pnl)<(w.net_pnl||w.pnl)?e:w,trades[0]):null;
-
-  // Profit factor = gross wins / gross losses
+  // Profit factor
   const grossWins=winTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
   const grossLosses=Math.abs(lossTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0));
   const profitFactor=grossLosses>0?(grossWins/grossLosses).toFixed(2):'∞';
 
-  // Monthly stats
-  const thisMonthK=iso(new Date()).slice(0,7);
-  const currentMonthEntries=sorted.filter(e=>e.date.slice(0,7)===thisMonthK);
-  const currentMonthNet=currentMonthEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
-  const monthPct=goal.monthly>0?(currentMonthNet/goal.monthly)*100:0;
-  const monthColor=monthPct>=100?'var(--grn)':monthPct>=75?'var(--blu)':monthPct>=40?'var(--amb)':'var(--red)';
-
-  // ── MOBILE WEEKLY SUMMARY (3 numbers only) ──
+  // Mobile weekly summary
   const mobWkTitle=document.getElementById('d-mob-week-title');
   const mobWkStats=document.getElementById('d-mob-week-stats');
   if(mobWkStats){
@@ -1928,7 +1893,7 @@ function renderDashboard(){
     ].map(([l,v,c])=>`<div class="mcard" style="padding:10px 12px;"><div class="ml">${l}</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};margin-top:3px;">${v}</div></div>`).join('');
   }
 
-  // ── Hero: win rate + expectancy inline ──
+  // Hero win rate + expectancy
   const wrHero=document.getElementById('d-winrate-hero');
   const wrSub=document.getElementById('d-winrate-sub');
   if(wrHero){
@@ -1944,7 +1909,7 @@ function renderDashboard(){
     ['Avg loss',lossTrades.length?'−'+fmtE(avgLoss,false):'—','var(--red)'],
   ].map(([l,v,c])=>`<div class="mcard"><div class="ml">${l}</div><div class="mv" style="color:${c};font-size:16px;">${v}</div></div>`).join('');
 
-  // ── DAILY CAP STATUS ──
+  // ── DAILY CAP STATUS ── (inserted after d-streak-card)
   if(riskSettings.dailyCap>0){
     const todayK=iso(new Date());
     const todayTrades=sorted.filter(e=>e.date===todayK&&(e.category==='trade'||!e.category));
@@ -1964,40 +1929,81 @@ function renderDashboard(){
       <div class="daily-cap-bar"><div class="daily-cap-fill" style="width:${capPct.toFixed(1)}%;background:${capColor};"></div></div>
       ${capPct>=100?`<div style="font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace;margin-top:6px;">🛑 Cap exceeded — stop trading for today</div>`:''}
     </div>`;
-    const paceWrapper=document.getElementById('d-pace-wrapper');
-    if(paceWrapper){
+    const streakCard=document.getElementById('d-streak-card');
+    if(streakCard){
       if(existingCap)existingCap.remove();
-      paceWrapper.insertAdjacentHTML('afterend',capHTML);
+      streakCard.insertAdjacentHTML('afterend',capHTML);
     }
   } else {
     const existingCap=document.getElementById('d-daily-cap');
     if(existingCap)existingCap.remove();
   }
+}
 
-  // Monthly target card - with color zones
-  const mtEl=document.getElementById('d-monthly-target');
+function renderGoals(){
+  const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
+  let cum=0;
+  const cumData=sorted.map(e=>{cum+=(e.net_pnl!=null?e.net_pnl:e.pnl);return parseFloat(cum.toFixed(2));});
+  const totalRealPnL=cumData.length?cumData[cumData.length-1]:0;
+  const tradedWksSet=new Set(sorted.map(e=>{const wi=getWeekNum(e.date);return wi.year+'-W'+String(wi.week).padStart(2,'0');}));
+  const avgW=tradedWksSet.size>0?sorted.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/tradedWksSet.size:0;
+
+  // Yearly goal bar
+  const pct=Math.max(0,Math.min(100,(totalRealPnL/goal.total)*100));
+  const bc=pct>=100?'#05d68d':pct>=50?'#05d68d':pct>=25?'#f5a623':'#f0466a';
+  const gGoalEarned=document.getElementById('g-goal-earned');
+  const gGoalPct=document.getElementById('g-goal-pct');
+  const gGbar=document.getElementById('g-gbar');
+  const gGoalRemaining=document.getElementById('g-goal-remaining');
+  if(gGoalEarned)gGoalEarned.textContent=fmtE(totalRealPnL,false);
+  if(gGoalPct){gGoalPct.textContent=pct.toFixed(1)+'%';gGoalPct.style.color=bc;}
+  if(gGbar){gGbar.style.width=pct.toFixed(1)+'%';gGbar.style.background=bc;}
+  if(gGoalRemaining)gGoalRemaining.textContent=fmtE(Math.max(0,goal.total-totalRealPnL),false)+' left  ·  by '+goal.deadline;
+
+  // Update navbar goal display
+  document.getElementById('sf-goal-text').textContent=fmtE(totalRealPnL,false)+' / '+goal.total.toLocaleString('de-DE')+' €';
+  document.getElementById('sf-bar').style.width=pct.toFixed(1)+'%';
+  document.getElementById('sf-bar').style.background=bc;
+
+  // Projection
+  const today=new Date(),deadline=new Date(goal.deadline);
+  const weeksLeft=Math.max(0,Math.ceil((deadline-today)/(7*24*3600*1000)));
+  const proj=document.getElementById('g-projection');
+  if(proj){
+    if(sorted.length>=2&&avgW>0){
+      const wn=(goal.total-totalRealPnL)/avgW;
+      const pd=new Date(today.getTime()+wn*7*24*3600*1000);
+      const onTrack=pd<=deadline;
+      proj.style.background=onTrack?'rgba(5,214,141,0.07)':'rgba(240,70,106,0.07)';
+      proj.style.color=onTrack?'var(--grn)':'var(--red)';
+      const reqWk=parseFloat(((goal.total-totalRealPnL)/Math.max(1,weeksLeft)).toFixed(2));
+      proj.innerHTML=`<strong>${onTrack?'On track ✓':'Behind pace'}</strong>`
+        +` · Your avg: <strong>${fmtE(avgW)}/wk</strong>`
+        +` · Required: <strong>${fmtE(reqWk,false)}/wk</strong>`
+        +` · Finish: <strong>${pd.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})}</strong>`
+        +` · ${weeksLeft} weeks left`;
+    } else {
+      proj.style.background='rgba(61,68,96,0.2)';proj.style.color='var(--t3)';
+      proj.textContent=weeksLeft+' weeks until deadline. Add P&L entries to see your projection.';
+    }
+  }
+
+  // Monthly stats
+  const thisMonthK=iso(new Date()).slice(0,7);
+  const currentMonthEntries=sorted.filter(e=>e.date.slice(0,7)===thisMonthK);
+  const currentMonthNet=currentMonthEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+  const monthPct=goal.monthly>0?(currentMonthNet/goal.monthly)*100:0;
+
+  // Monthly target card
+  const mtEl=document.getElementById('g-monthly-target');
   if(mtEl){
     const over=currentMonthNet>=goal.monthly;
     const diff=Math.abs(currentMonthNet-goal.monthly);
-    const barMax=Math.max(currentMonthNet,goal.monthly)*1.2||goal.monthly*1.2;
-    const actualW=Math.min(100,(currentMonthNet/barMax)*100);
-    const targetW=Math.min(97,(goal.monthly/barMax)*100);
     const fullMonthName=['January','February','March','April','May','June','July','August','September','October','November','December'][new Date().getMonth()];
-    // Color: red=0-40%, amber=40-75%, blue=75-99%, green=100%+
-    const zoneColor = currentMonthNet<=0 ? 'var(--red)'
-      : monthPct<40 ? 'var(--red)'
-      : monthPct<75 ? 'var(--amb)'
-      : monthPct<100 ? 'var(--blu)'
-      : 'var(--grn)';
-    const statusLabel = currentMonthNet<=0 ? 'No profit yet'
-      : over ? `+${fmtE(diff,false)} above target 🎯`
-      : monthPct>=75 ? `Almost there — ${fmtE(diff,false)} to go`
-      : monthPct>=40 ? `In progress — ${fmtE(diff,false)} to go`
-      : `${fmtE(diff,false)} to reach target`;
-    // 3-state bar: empty (0%) → grey progress → full green (100%+)
+    const zoneColor=currentMonthNet<=0?'var(--red)':monthPct<40?'var(--red)':monthPct<75?'var(--amb)':monthPct<100?'var(--blu)':'var(--grn)';
+    const statusLabel=currentMonthNet<=0?'No profit yet':over?`+${fmtE(diff,false)} above target 🎯`:monthPct>=75?`Almost there — ${fmtE(diff,false)} to go`:monthPct>=40?`In progress — ${fmtE(diff,false)} to go`:`${fmtE(diff,false)} to reach target`;
     const barPct=Math.min(100,Math.max(0,monthPct));
-    const barColor=monthPct>=100?'var(--grn)':'var(--bg4)'; // green when hit, grey when in progress
-    const overflowPct=monthPct>100?Math.min(20,monthPct-100):0; // small overflow indicator
+    const barColor=monthPct>=100?'var(--grn)':'var(--bg4)';
     mtEl.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
         <div style="flex:1;min-width:0;">
@@ -2011,14 +2017,12 @@ function renderDashboard(){
           <div style="font-size:12px;font-weight:700;margin-top:2px;font-family:'JetBrains Mono',monospace;color:${zoneColor};">${monthPct.toFixed(0)}%</div>
         </div>
       </div>
-      <!-- 3-state progress bar -->
       <div style="position:relative;height:10px;background:var(--bg2);border-radius:99px;overflow:hidden;border:0.5px solid var(--line);">
         ${currentMonthNet>0?`
           <div style="position:absolute;left:0;top:0;height:10px;border-radius:99px;background:${barColor};width:${barPct.toFixed(1)}%;transition:width 0.6s cubic-bezier(.4,0,.2,1);"></div>
           ${monthPct>=100?`<div style="position:absolute;left:0;top:0;height:10px;border-radius:99px;background:var(--grn);width:100%;opacity:0.9;"></div>`:''}
         `:''}
       </div>
-      <!-- Labels below bar -->
       <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;font-family:'JetBrains Mono',monospace;">
         <span style="color:var(--t3);">€0</span>
         <span style="color:var(--t3);">▲ ${fmtE(goal.monthly,false)}</span>
@@ -2026,8 +2030,8 @@ function renderDashboard(){
       </div>`;
   }
 
-  // ── QUARTERLY MINI on dashboard ──
-  const qMini=document.getElementById('d-quarterly-mini');
+  // Quarterly mini
+  const qMini=document.getElementById('g-quarterly-mini');
   if(qMini){
     const yr=goal.year||new Date().getFullYear();
     const qs=[{l:'Q1',m:['01','02','03']},{l:'Q2',m:['04','05','06']},{l:'Q3',m:['07','08','09']},{l:'Q4',m:['10','11','12']}];
@@ -2051,21 +2055,23 @@ function renderDashboard(){
     }).join('')}</div>`;
   }
 
+  // Cumulative chart on Goals tab
   const labels=sorted.map(e=>e.date);
   const goalStart=new Date(goal.deadline.slice(0,4)+'-01-01'),goalEnd=new Date(goal.deadline);
   const totalDays=(goalEnd-goalStart)/86400000;
   const goalPace=sorted.map(e=>{const d=Math.max(0,(new Date(e.date)-goalStart)/86400000);return parseFloat(((d/totalDays)*goal.total).toFixed(2));});
 
-  if(chartCum)chartCum.destroy();
-  chartCum=new Chart(document.getElementById('chart-cum'),{type:'line',data:{labels,datasets:[
-    {data:cumData,borderColor:'#05d68d',backgroundColor:'rgba(5,214,141,0.06)',fill:true,tension:0.35,pointRadius:2,pointBackgroundColor:'#05d68d',borderWidth:2},
-    {data:goalPace,borderColor:'#4c8dff',borderDash:[4,3],backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:0,borderWidth:1.5}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-    x:{ticks:{color:'#3d4460',font:{size:9},autoSkip:true,maxTicksLimit:6,callback:function(v,i,all){const d=this.getLabelForValue(v);return d?d.slice(5):''}},grid:{display:false},border:{display:false}},
-    y:{ticks:{color:'#3d4460',font:{size:10,family:"'JetBrains Mono',monospace"},callback:v=>(v>=0?'+':'')+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.03)'},border:{display:false}}
-  }}});
-
-
+  if(chartCumGoals)chartCumGoals.destroy();
+  const cumGoalsCanvas=document.getElementById('chart-cum-goals');
+  if(cumGoalsCanvas){
+    chartCumGoals=new Chart(cumGoalsCanvas,{type:'line',data:{labels,datasets:[
+      {data:cumData,borderColor:'#05d68d',backgroundColor:'rgba(5,214,141,0.06)',fill:true,tension:0.35,pointRadius:2,pointBackgroundColor:'#05d68d',borderWidth:2},
+      {data:goalPace,borderColor:'#4c8dff',borderDash:[4,3],backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:0,borderWidth:1.5}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+      x:{ticks:{color:'#3d4460',font:{size:9},autoSkip:true,maxTicksLimit:6,callback:function(v,i,all){const d=this.getLabelForValue(v);return d?d.slice(5):''}},grid:{display:false},border:{display:false}},
+      y:{ticks:{color:'#3d4460',font:{size:10,family:"'JetBrains Mono',monospace"},callback:v=>(v>=0?'+':'')+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.03)'},border:{display:false}}
+    }}});
+  }
 }
 
 
@@ -2905,7 +2911,7 @@ function renderAnalytics(){
 }
 // ── PACE & STRATEGY ──
 function renderPaceCard(){
-  const el=document.getElementById('d-pace-card');
+  const el=document.getElementById('g-pace-card');
   if(!el)return;
 
   const today=new Date();
@@ -3039,8 +3045,8 @@ function renderPaceCard(){
 }
 
 function togglePaceCard(){
-  const body=document.getElementById('d-pace-card');
-  const chevron=document.getElementById('d-pace-chevron');
+  const body=document.getElementById('g-pace-card');
+  const chevron=document.getElementById('g-pace-chevron');
   if(!body)return;
   const isOpen=body.style.display!=='none'&&body.style.display!=='';
   body.style.display=isOpen?'none':'block';
