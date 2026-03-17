@@ -220,14 +220,18 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .week-header:hover{border-color:var(--line2);}
 .week-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
 .month-entries.open{display:block!important;}
-.month-header{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;}
+.month-header{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;min-width:0;}
 .month-header:hover{border-color:var(--line2);}
 .month-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
 .month-chevron{width:16px;height:16px;flex-shrink:0;color:var(--t3);transition:transform 0.2s;}
 .month-chevron.open{transform:rotate(90deg);}
-.month-name{font-size:13px;font-weight:700;flex:1;}
-.month-meta{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
-.month-total{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-left:8px;}
+.month-name{font-size:13px;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.month-meta{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
+.month-total{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
+@media(max-width:768px){
+  .month-meta{display:none;}
+  .month-total{font-size:13px;}
+}
 .month-entries{display:none;border:0.5px solid var(--line);border-top:none;border-bottom-left-radius:var(--r2);border-bottom-right-radius:var(--r2);overflow:hidden;}
 .month-entries.open{display:block;}
 .hrow{background:var(--bg2);border:none;border-top:0.5px solid var(--line);border-radius:0;padding:10px 14px;display:flex;align-items:center;gap:10px;}
@@ -1258,7 +1262,16 @@ function showSec(id,btn,type){
     document.querySelectorAll('.mnav-btn')[idx].classList.add('active');
   }
   // Scroll to top on section change
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'instant'});
+  // Re-render charts after section is visible — charts rendered while display:none have zero size
+  if(id==='dashboard'||id==='pnl'){
+    requestAnimationFrame(()=>{
+      try{
+        if(id==='dashboard'){renderDashboard();renderStreak();renderPaceCard();}
+        if(id==='pnl'){renderPnL();}
+      }catch(e){console.error('Section render:',e);}
+    });
+  }
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
