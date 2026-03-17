@@ -2686,28 +2686,80 @@ function renderAnalytics(){
         const avgL=losses.length?Math.abs(losses.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/losses.length):0;
         return {total:arr.length,wins:wins.length,wr:arr.length?Math.round(wins.length/arr.length*100):0,totalNet,avgW,avgL};
       }
-      const cards=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
+
+      // Summary bar totals
+      const allTaggedNet=tagged.reduce((s,e)=>s+(e.net_pnl||e.pnl),0);
+      const allTaggedWins=tagged.filter(e=>(e.net_pnl||e.pnl)>0).length;
+      const bestTag=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
         const arr=trades.filter(e=>e.direction===key);
         const s=tagStats(arr);
-        if(!s)return '';
-        const c=s.totalNet>=0?'var(--grn)':'var(--red)';
-        return `<div style="background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:12px 14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:13px;font-weight:700;color:${cfg.color};">${cfg.emoji} ${cfg.label}</div>
-            <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${s.total} trade${s.total!==1?'s':''}</div>
+        return s?{key,cfg,s}:null;
+      }).filter(Boolean).sort((a,b)=>b.s.totalNet-a.s.totalNet)[0];
+      const summaryNetColor=allTaggedNet>=0?'var(--grn)':'var(--red)';
+
+      // Summary bar
+      const summaryBar=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);overflow:hidden;margin-bottom:10px;">
+        <div style="padding:9px 10px;border-right:0.5px solid var(--line);">
+          <div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Tagged</div>
+          <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${tagged.length}</div>
+        </div>
+        <div style="padding:9px 10px;border-right:0.5px solid var(--line);">
+          <div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Best</div>
+          <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${bestTag?bestTag.cfg.color:'var(--t2)'};">${bestTag?bestTag.cfg.label:'—'}</div>
+        </div>
+        <div style="padding:9px 10px;">
+          <div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Total Net</div>
+          <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${summaryNetColor};">${fmtE(allTaggedNet)}</div>
+        </div>
+      </div>`;
+
+      // Tag rows — sorted by net P&L desc, only tags with trades
+      const chevronSvg=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+      const tagRows=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
+        const arr=trades.filter(e=>e.direction===key);
+        const s=tagStats(arr);
+        if(!s)return null;
+        return {key,cfg,s};
+      }).filter(Boolean).sort((a,b)=>b.s.totalNet-a.s.totalNet).map(({key,cfg,s})=>{
+        const pnlColor=Math.abs(s.totalNet)<0.005?'var(--t3)':s.totalNet>0?'var(--grn)':'var(--red)';
+        const wrColor=s.wr>=50?'var(--grn)':'var(--red)';
+        const detailId=`dir-detail-${key}`;
+        const chevId=`dir-chev-${key}`;
+        return `<div style="background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);overflow:hidden;margin-bottom:6px;">
+          <div onclick="(function(){var d=document.getElementById('${detailId}');var c=document.getElementById('${chevId}');var open=d.style.display==='grid';d.style.display=open?'none':'grid';c.style.transform=open?'rotate(0deg)':'rotate(180deg)';d.style.borderTop=open?'none':'0.5px solid var(--line)';})();"
+            style="display:flex;align-items:center;gap:0;cursor:pointer;min-height:42px;">
+            <div style="width:3px;align-self:stretch;background:${cfg.color};flex-shrink:0;border-radius:0;"></div>
+            <div style="flex:1;display:flex;align-items:center;gap:9px;padding:9px 11px;min-width:0;">
+              <div style="width:7px;height:7px;border-radius:50%;background:${cfg.color};flex-shrink:0;"></div>
+              <div style="font-size:13px;font-weight:600;flex-shrink:0;min-width:38px;">${cfg.label}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <div style="flex:1;height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;">
+                    <div style="width:${s.wr}%;height:4px;background:${cfg.color};border-radius:99px;"></div>
+                  </div>
+                  <span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:${wrColor};flex-shrink:0;">${s.wr}%</span>
+                </div>
+                <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">${s.total} trade${s.total!==1?'s':''}</div>
+              </div>
+              <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${pnlColor};flex-shrink:0;">${fmtE(s.totalNet)}</div>
+            </div>
+            <div id="${chevId}" style="width:30px;display:flex;align-items:center;justify-content:center;color:var(--t3);align-self:stretch;flex-shrink:0;transition:transform 0.2s;">${chevronSvg}</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;min-width:0;">
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Win %</div><div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${s.wr>=50?'var(--grn)':'var(--red)'};">${s.wr}%</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg W</div><div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fmtE(s.avgW,false)}</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg L</div><div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">−${fmtE(s.avgL,false)}</div></div>
-          </div>
-          <div style="padding-top:8px;border-top:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">Net P&L</span>
-            <span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};">${fmtE(s.totalNet)}</span>
+          <div id="${detailId}" style="display:none;grid-template-columns:1fr 1fr;gap:6px;padding:10px 11px;border-top:none;">
+            <div style="background:var(--bg3);border-radius:var(--r2);padding:9px 10px;">
+              <div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Avg Win</div>
+              <div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);">${s.avgW>0?fmtE(s.avgW,false):'—'}</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:var(--r2);padding:9px 10px;">
+              <div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Avg Loss</div>
+              <div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);">${s.avgL>0?'−'+fmtE(s.avgL,false):'—'}</div>
+            </div>
           </div>
         </div>`;
-      }).filter(Boolean).join('');
-      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;">${cards}</div>${untaggedCount?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:''}`;
+      }).join('');
+
+      const footnote=untaggedCount?`<div style="margin-top:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:'';
+      dirEl.innerHTML=summaryBar+tagRows+footnote;
     }
   }
 
@@ -2729,28 +2781,47 @@ function renderAnalytics(){
       });
       const allSorted=Object.entries(byCompany).sort((a,b)=>b[1].totalNet-a[1].totalNet);
       const top5=allSorted.slice(0,5);
-      const bot5=allSorted.slice(-5).reverse();
+      const bot5=allSorted.filter(([,s])=>s.totalNet<0).sort((a,b)=>a[1].totalNet-b[1].totalNet).slice(0,5);
 
-      function renderUnderlying([name,s],rank,isWin){
+      function renderURow([name,s],rank,isTop){
         const wr=Math.round(s.wins/s.trades.length*100);
-        const c=s.totalNet>=0?'var(--grn)':'var(--red)';
-        const medal=rank===0?(isWin?'🥇':'💀'):rank===1?(isWin?'🥈':''):rank===2?(isWin?'🥉':''):'';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);">
+        const pnlColor=s.totalNet>=0?'var(--grn)':'var(--red)';
+        const tickerBg=isTop?'rgba(5,214,141,0.08)':rank===0?'rgba(240,70,106,0.1)':'rgba(240,70,106,0.06)';
+        const tickerColor=isTop?'var(--grn)':'var(--red)';
+        const ticker=(name.length<=5?name:name.slice(0,4)).toUpperCase();
+        const rankDisplay=isTop
+          ?(rank===0?'🥇':rank===1?'🥈':rank===2?'🥉':`<span style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">${rank+1}</span>`)
+          :(rank===0?'💀':`<span style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">${rank+1}</span>`);
+        const isLast=false;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--line);">
+          <div style="width:18px;text-align:center;flex-shrink:0;font-size:13px;">${rankDisplay}</div>
+          <div style="width:32px;height:32px;border-radius:8px;background:${tickerBg};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${tickerColor};flex-shrink:0;">${ticker}</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${medal} ${name}</div>
-            <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;">${s.trades.length} trade${s.trades.length!==1?'s':''} · ${wr}% win · gross ${fmtE(s.gross,false)} · tax −${fmtE(s.tax,false)}</div>
+            <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+            <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:1px;">${s.trades.length} trade${s.trades.length!==1?'s':''} · ${wr}% win</div>
           </div>
-          <div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};flex-shrink:0;">${fmtE(s.totalNet)}</div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${pnlColor};">${fmtE(s.totalNet)}</div>
+          </div>
         </div>`;
       }
 
+      const topRows=top5.map((e,i)=>renderURow(e,i,true)).join('');
+      const botSection=bot5.length?`
+        <div style="font-size:9px;color:var(--red);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin:10px 0 2px;">▼ Worst performers</div>
+        ${bot5.map((e,i)=>renderURow(e,i,false)).join('')}
+      `:'';
+
+      // Remove last border-bottom from last row of each section
       ulEl.innerHTML=`
-        <div style="font-size:10px;color:var(--grn);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Top performers</div>
-        <div style="display:grid;gap:5px;margin-bottom:12px;">${top5.map((e,i)=>renderUnderlying(e,i,true)).join('')}</div>
-        ${bot5.length&&bot5[0][1].totalNet<0?`
-        <div style="font-size:10px;color:var(--red);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Worst performers</div>
-        <div style="display:grid;gap:5px;">${bot5.filter(([,s])=>s.totalNet<0).map((e,i)=>renderUnderlying(e,i,false)).join('')}</div>
-        `:''}`;
+        <div style="font-size:9px;color:var(--grn);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">▲ Top performers</div>
+        <div>${topRows}</div>
+        ${botSection}
+      `;
+      // Clean up last border
+      ulEl.querySelectorAll('div[style*="border-bottom"]').forEach((el,i,arr)=>{
+        // find last in each visual group — handled via the section label gap instead
+      });
     }
   }
 
@@ -2804,7 +2875,7 @@ function renderAnalytics(){
     const now=new Date();
     const curMonth=now.getMonth()+1;
 
-    const qCards=quarters.map(q=>{
+    const tiles=quarters.map(q=>{
       const qEntries=allSorted.filter(e=>e.date.startsWith(year)&&q.months.includes(e.date.slice(5,7)));
       const qNet=parseFloat(qEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
       cumulative+=qNet;
@@ -2817,42 +2888,41 @@ function renderAnalytics(){
       const isCurrent=qMonthNums.includes(curMonth)&&now.getFullYear()===year;
       const isFuture=Math.min(...qMonthNums)>curMonth&&now.getFullYear()===year;
       const statusColor=hit?'var(--grn)':partial?'var(--amb)':qNet<0?'var(--red)':'var(--t3)';
-      const statusLabel=hit?'Target hit ✓':partial?'In progress':qNet<0&&qEntries.length?'Below target':isFuture?'Upcoming':'No data yet';
+      const accentColor=hit?'var(--grn)':partial?'var(--amb)':isFuture?'var(--t3)':qNet<0?'var(--red)':'var(--t3)';
+      const statusLabel=hit?'✓ Hit':partial?'In progress':qNet<0&&qEntries.length?'Below target':isFuture?'Upcoming':'No data';
       const barW=Math.min(100,Math.abs(pct));
-      const borderStyle=isCurrent?'border:0.5px solid rgba(5,214,141,0.4);':'border:0.5px solid var(--line);';
+      const borderStyle=isCurrent?'border:0.5px solid rgba(5,214,141,0.35);':'border:0.5px solid var(--line);';
+      const nowBadge=isCurrent?`<span style="font-size:9px;padding:1px 5px;border-radius:99px;background:var(--grn2);color:var(--grn);font-weight:700;font-family:'JetBrains Mono',monospace;">NOW</span>`:'';
+      const pnlDisplay=qEntries.length?fmtE(qNet):'—';
+      const metaLine=qTrades.length?`${qTrades.length}t · ${Math.round(qWins/qTrades.length*100)}% win`:(isFuture?'Upcoming':'No data');
 
-      let html='<div style="background:var(--bg2);'+borderStyle+'border-radius:var(--r2);padding:14px 16px;">';
-      html+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">';
-      html+='<div>';
-      html+='<div style="display:flex;align-items:center;gap:8px;">';
-      html+='<span style="font-size:16px;font-weight:800;font-family:JetBrains Mono,monospace;">'+q.label+'</span>';
-      html+='<span style="font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;">'+q.period+' '+year+'</span>';
-      if(isCurrent)html+='<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:rgba(5,214,141,0.12);color:var(--grn);font-weight:700;">NOW</span>';
-      html+='</div>';
-      html+='<div style="font-size:10px;color:var(--t3);font-family:JetBrains Mono,monospace;margin-top:3px;">'+qTrades.length+' trades · '+(qTrades.length?Math.round(qWins/qTrades.length*100):0)+'% win rate</div>';
-      html+='</div>';
-      html+='<div style="text-align:right;flex-shrink:0;min-width:0;">';
-      html+='<div style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+statusColor+';white-space:nowrap;">'+(qEntries.length?fmtE(qNet):'—')+'</div>';
-      html+='<div style="font-size:10px;font-family:JetBrains Mono,monospace;color:'+statusColor+';margin-top:2px;">'+statusLabel+'</div>';
-      html+='</div></div>';
-
-      if(qEntries.length){
-        html+='<div style="position:relative;height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;">';
-        html+='<div style="height:6px;border-radius:99px;background:'+statusColor+';width:'+barW.toFixed(1)+'%;transition:width 0.5s;"></div>';
-        html+='</div>';
-        html+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-family:JetBrains Mono,monospace;color:var(--t3);">';
-        html+='<span style="white-space:nowrap;">Target: '+fmtE(qTarget,false)+'</span>';
-        html+='<span style="color:'+statusColor+';white-space:nowrap;">'+pct.toFixed(0)+'%</span>';
-        html+='<span style="white-space:nowrap;">Cum: '+fmtE(cumulative)+'</span>';
-        html+='</div>';
-      } else {
-        html+='<div style="font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;">'+(isFuture?'Starts '+q.months[0]+'/'+year:'No entries yet')+'</div>';
-      }
-      html+='</div>';
-      return html;
+      return `<div style="background:var(--bg2);${borderStyle}border-radius:var(--r2);padding:10px 11px 9px;display:flex;flex-direction:column;gap:5px;position:relative;overflow:hidden;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${accentColor};"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-left:2px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace;">${q.label}</span>
+            ${nowBadge}
+          </div>
+          <span style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;">${q.period}</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${statusColor};line-height:1;padding-left:2px;">${pnlDisplay}</div>
+        <div style="height:3px;background:var(--bg3);border-radius:99px;overflow:hidden;">
+          <div style="height:3px;border-radius:99px;background:${accentColor};width:${barW.toFixed(1)}%;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--t3);">
+          <span>${metaLine}</span>
+          <span style="color:${statusColor};">${qEntries.length?pct.toFixed(0)+'%':''} ${statusLabel}</span>
+        </div>
+      </div>`;
     });
 
-    qEl.innerHTML='<div style="display:grid;gap:10px;">'+qCards.join('')+'</div>';
+    const cumColor=cumulative>=0?'var(--grn)':'var(--red)';
+    const cumFooter=`<div style="margin-top:6px;padding:8px 11px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;">Cumulative YTD</span>
+      <span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${cumColor};">${fmtE(cumulative)}</span>
+    </div>`;
+
+    qEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${tiles.join('')}</div>${cumFooter}`;
   }
 
   // ── PSYCHOLOGY ANALYTICS ──
