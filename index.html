@@ -337,6 +337,26 @@ textarea:focus{border-color:var(--grn);}
 
 /* EMPTY */
 .empty{text-align:center;padding:36px 20px;color:var(--t3);font-size:12px;font-family:'JetBrains Mono',monospace;line-height:1.8;}
+/* ── MOBILE DASHBOARD ORDER ── */
+@media(max-width:768px){
+  #sec-dashboard{display:flex;flex-direction:column;}
+  .desktop-topbar{order:-10;}
+  #d-hero-card{order:1;}
+  #d-monthly-target{order:2;}
+  #d-weekly-summary-mobile{order:3;}
+  #d-metrics{order:4;}
+  #d-cum-card{order:5;}
+  #d-quarterly-card{order:6;}
+  #d-streak-card{order:7;}
+  #d-yearly-goal-card{order:8;}
+  #d-pace-wrapper{order:9;}
+  #d-daily-cap{order:10;}
+}
+/* Hide mobile-only weekly summary on desktop */
+@media(min-width:769px){
+  #d-weekly-summary-mobile{display:none!important;}
+}
+
 .empty-icon{font-size:28px;margin-bottom:10px;}
 
 /* PACE CARD */
@@ -521,45 +541,42 @@ textarea:focus{border-color:var(--grn);}
           <div class="topbar-actions"></div>
         </div>
 
-        <!-- Hero: Net P&L + Expectancy side by side -->
-        <div class="dash-grid-2" style="margin-bottom:10px;">
-          <div class="card" style="margin-bottom:0;">
-            <div class="card-label">Net realized P&L (after tax)</div>
-            <div class="hero-val" id="d-networth">0,00 €</div>
-            <div class="hero-sub" style="margin-top:6px;">
-              <span id="d-gross-badge" style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;"></span>
-            </div>
+        <!-- Hero: Net P&L (large) + Win Rate + Expectancy -->
+        <div class="card" style="margin-bottom:10px;" id="d-hero-card">
+          <div class="card-label">Net realized P&L (after tax)</div>
+          <div class="hero-val" id="d-networth">0,00 €</div>
+          <div style="margin-top:6px;">
+            <span id="d-gross-badge" style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;"></span>
           </div>
-          <div class="card" style="margin-bottom:0;">
-            <div class="card-label">Expectancy per trade</div>
-            <div style="font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;" id="d-expectancy">—</div>
-            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;margin-top:6px;color:var(--t3);">avg profit × win% − avg loss × loss%</div>
-            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;margin-top:3px;" id="d-expectancy-label"></div>
+          <!-- Win Rate + Expectancy row -->
+          <div class="hero-stats-row" style="display:flex;gap:0;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--line);">
+            <div style="flex:1;padding-right:16px;border-right:0.5px solid var(--line);">
+              <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Win Rate</div>
+              <div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;" id="d-winrate-hero">—</div>
+              <div style="font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:3px;color:var(--t3);" id="d-winrate-sub"></div>
+            </div>
+            <div style="flex:1;padding-left:16px;">
+              <div style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Expectancy</div>
+              <div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;" id="d-expectancy">—</div>
+              <div style="font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:3px;" id="d-expectancy-label"></div>
+            </div>
           </div>
         </div>
 
         <!-- Monthly target -->
         <div class="card" style="margin-bottom:10px;" id="d-monthly-target"></div>
 
-        <!-- Warrant performance metrics 4-wide -->
-        <div class="metrics-row" id="d-metrics" style="grid-template-columns:1fr 1fr;"></div>
-
-        <!-- Yearly goal -->
-        <div class="card" style="margin-bottom:10px;">
-          <div class="card-label">Yearly goal — <span id="d-goal-pct" style="color:var(--grn);">0%</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-            <span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="d-goal-earned">0 €</span>
-            <span style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;" id="d-goal-remaining"></span>
-          </div>
-          <div class="gbar-track"><div class="gbar-fill" id="d-gbar" style="width:0%;background:var(--grn);"></div></div>
-          <div class="projection" id="d-projection" style="margin-top:8px;font-size:10px;"></div>
+        <!-- Mobile-only: Weekly Summary (3 numbers, no day grid) -->
+        <div class="card" id="d-weekly-summary-mobile" style="margin-bottom:10px;">
+          <div class="sh"><div class="sh-title" id="d-mob-week-title">This week</div></div>
+          <div id="d-mob-week-stats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;"></div>
         </div>
 
-        <!-- Pace & Strategy card -->
-        <div class="card" style="margin-bottom:10px;" id="d-pace-card"></div>
+        <!-- 4 key metric cards -->
+        <div class="metrics-row" id="d-metrics" style="grid-template-columns:1fr 1fr;margin-bottom:10px;"></div>
 
         <!-- Cumulative chart -->
-        <div class="card" style="margin-bottom:10px;">
+        <div class="card" id="d-cum-card" style="margin-bottom:10px;">
           <div class="sh">
             <div class="sh-title">Cumulative P&L vs goal pace</div>
             <div style="display:flex;gap:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);">
@@ -571,7 +588,7 @@ textarea:focus{border-color:var(--grn);}
         </div>
 
         <!-- Quarterly summary on dashboard -->
-        <div class="card" style="margin-bottom:10px;">
+        <div class="card" id="d-quarterly-card" style="margin-bottom:10px;">
           <div class="sh">
             <div class="sh-title">Quarterly overview</div>
             <button class="sh-action" onclick="showSec('analytics',document.querySelectorAll('.snav-btn')[3],'s')">Full analytics →</button>
@@ -580,9 +597,29 @@ textarea:focus{border-color:var(--grn);}
         </div>
 
         <!-- Streak & Stats -->
-        <div class="card" style="margin-bottom:10px;">
+        <div class="card" id="d-streak-card" style="margin-bottom:10px;">
           <div class="sh"><div class="sh-title">Streak & Stats</div></div>
           <div id="d-streak-content"></div>
+        </div>
+
+        <!-- Yearly goal -->
+        <div class="card" id="d-yearly-goal-card" style="margin-bottom:10px;">
+          <div class="card-label">Yearly goal — <span id="d-goal-pct" style="color:var(--grn);">0%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+            <span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="d-goal-earned">0 €</span>
+            <span style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;" id="d-goal-remaining"></span>
+          </div>
+          <div class="gbar-track"><div class="gbar-fill" id="d-gbar" style="width:0%;background:var(--grn);"></div></div>
+          <div class="projection" id="d-projection" style="margin-top:8px;font-size:10px;"></div>
+        </div>
+
+        <!-- Pace & Strategy card (collapsed by default) -->
+        <div class="card" id="d-pace-wrapper" style="margin-bottom:10px;padding:0;overflow:hidden;">
+          <div id="d-pace-toggle" onclick="togglePaceCard()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;">
+            <div class="card-label" style="margin-bottom:0;">Pace & Strategy</div>
+            <svg id="d-pace-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px;color:var(--t3);transition:transform 0.2s;flex-shrink:0;"><path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div id="d-pace-card" style="display:none;padding:0 18px 14px;"></div>
         </div>
       </div>
 
@@ -1861,15 +1898,46 @@ function renderDashboard(){
   const monthPct=goal.monthly>0?(currentMonthNet/goal.monthly)*100:0;
   const monthColor=monthPct>=100?'var(--grn)':monthPct>=75?'var(--blu)':monthPct>=40?'var(--amb)':'var(--red)';
 
+  // ── MOBILE WEEKLY SUMMARY (3 numbers only) ──
+  const mobWkTitle=document.getElementById('d-mob-week-title');
+  const mobWkStats=document.getElementById('d-mob-week-stats');
+  if(mobWkStats){
+    const today=new Date();
+    const dow=today.getDay()||7;
+    const monday=new Date(today);monday.setDate(today.getDate()-(dow-1));monday.setHours(0,0,0,0);
+    const friday=new Date(monday);friday.setDate(monday.getDate()+4);
+    const wkEntries=sorted.filter(e=>{const d=new Date(e.date);return d>=monday&&d<=friday;});
+    const wkNet=wkEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+    const wkTrades=wkEntries.filter(e=>e.category==='trade'||!e.category);
+    const wkWins=wkTrades.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length;
+    const wkWr=wkTrades.length?Math.round(wkWins/wkTrades.length*100):0;
+    const dailyTarget=riskSettings.dailyTarget||(goal.monthly/21);
+    const wkTarget=dailyTarget*5;
+    const wkPct=wkTarget>0?(wkNet/wkTarget)*100:0;
+    const wkColor=wkNet>=wkTarget?'var(--grn)':wkNet>0?'var(--amb)':wkNet<0?'var(--red)':'var(--t3)';
+    const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if(mobWkTitle)mobWkTitle.textContent=`${monday.getDate()} ${mn[monday.getMonth()]} – ${friday.getDate()} ${mn[friday.getMonth()]}`;
+    mobWkStats.innerHTML=[
+      ['Week net',fmtE(wkNet),wkColor],
+      ['Win rate',wkTrades.length?wkWr+'%':'—',wkWr>=50?'var(--grn)':'var(--red)'],
+      ['vs target',wkTarget>0?wkPct.toFixed(0)+'%':'—',wkColor],
+    ].map(([l,v,c])=>`<div class="mcard" style="padding:10px 12px;"><div class="ml">${l}</div><div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};margin-top:3px;">${v}</div></div>`).join('');
+  }
+
+  // ── Hero: win rate + expectancy inline ──
+  const wrHero=document.getElementById('d-winrate-hero');
+  const wrSub=document.getElementById('d-winrate-sub');
+  if(wrHero){
+    wrHero.textContent=trades.length?Math.round(winRate*100)+'%':'—';
+    wrHero.style.color=winRate>=0.5?'var(--grn)':'var(--red)';
+  }
+  if(wrSub)wrSub.textContent=trades.length?winTrades.length+' wins / '+lossTrades.length+' losses':'';
+
   document.getElementById('d-metrics').innerHTML=[
     ['Win rate',trades.length?Math.round(winRate*100)+'%  ('+winTrades.length+'/'+trades.length+')':'—',winRate>=0.5?'var(--grn)':'var(--red)'],
     ['Profit factor',trades.length?profitFactor:'—',parseFloat(profitFactor)>=1?'var(--grn)':'var(--red)'],
     ['Avg win',winTrades.length?fmtE(avgWin):'—','var(--grn)'],
     ['Avg loss',lossTrades.length?'−'+fmtE(avgLoss,false):'—','var(--red)'],
-    ['Best trade',bestT?fmtE(bestT.net_pnl||bestT.pnl):'—','var(--grn)'],
-    ['Worst trade',worstT?fmtE(worstT.net_pnl||worstT.pnl):'—','var(--red)'],
-    ['Tax paid total','−'+fmtE(totalTax,false),'var(--t2)'],
-    ['Interest + divs',fmtE(totalInterest+totalDivsPnL,false),'var(--pur)'],
   ].map(([l,v,c])=>`<div class="mcard"><div class="ml">${l}</div><div class="mv" style="color:${c};font-size:16px;">${v}</div></div>`).join('');
 
   // ── DAILY CAP STATUS ──
@@ -1892,10 +1960,10 @@ function renderDashboard(){
       <div class="daily-cap-bar"><div class="daily-cap-fill" style="width:${capPct.toFixed(1)}%;background:${capColor};"></div></div>
       ${capPct>=100?`<div style="font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace;margin-top:6px;">🛑 Cap exceeded — stop trading for today</div>`:''}
     </div>`;
-    const paceCard=document.getElementById('d-pace-card');
-    if(paceCard){
+    const paceWrapper=document.getElementById('d-pace-wrapper');
+    if(paceWrapper){
       if(existingCap)existingCap.remove();
-      paceCard.insertAdjacentHTML('afterend',capHTML);
+      paceWrapper.insertAdjacentHTML('afterend',capHTML);
     }
   } else {
     const existingCap=document.getElementById('d-daily-cap');
@@ -2966,7 +3034,17 @@ function renderPaceCard(){
     </div>`;
 }
 
-// ── STREAK & STATS ──
+function togglePaceCard(){
+  const body=document.getElementById('d-pace-card');
+  const chevron=document.getElementById('d-pace-chevron');
+  if(!body)return;
+  const isOpen=body.style.display!=='none'&&body.style.display!=='';
+  body.style.display=isOpen?'none':'block';
+  if(chevron)chevron.style.transform=isOpen?'':'rotate(180deg)';
+  // Ensure renderPaceCard is populated when first expanded
+  if(!isOpen&&body.innerHTML.trim()===''){renderPaceCard();}
+}
+
 function renderStreak(){
   const el=document.getElementById('d-streak-content');
   if(!el)return;
