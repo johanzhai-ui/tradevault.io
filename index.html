@@ -2611,28 +2611,121 @@ function renderAnalytics(){
         const avgL=losses.length?Math.abs(losses.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/losses.length):0;
         return {total:arr.length,wins:wins.length,wr:arr.length?Math.round(wins.length/arr.length*100):0,totalNet,avgW,avgL};
       }
-      const cards=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
+
+      // Build sorted rows data (shared by both layouts)
+      const rowData=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
         const arr=trades.filter(e=>e.direction===key);
         const s=tagStats(arr);
-        if(!s)return '';
-        const c=s.totalNet>=0?'var(--grn)':'var(--red)';
-        return `<div style="background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:12px 14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:13px;font-weight:700;color:${cfg.color};">${cfg.emoji} ${cfg.label}</div>
-            <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${s.total} trade${s.total!==1?'s':''}</div>
+        if(!s)return null;
+        return {key,cfg,s};
+      }).filter(Boolean).sort((a,b)=>b.s.totalNet-a.s.totalNet);
+
+      // Helper: Net P&L pill badge
+      function pnlPill(val){
+        const abs=Math.abs(val);
+        if(abs<0.005){
+          return `<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;background:var(--bg3);color:var(--t2);">${fmtE(val)}</span>`;
+        } else if(val>0){
+          return `<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;background:var(--grn2);color:var(--grn);">${fmtE(val)}</span>`;
+        } else {
+          return `<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;background:var(--red2);color:var(--red);">${fmtE(val)}</span>`;
+        }
+      }
+
+      // Helper: inline win% mini-bar
+      function winBar(wr,color){
+        return `<div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:80px;height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;flex-shrink:0;">
+            <div style="width:${wr}%;height:4px;background:${color};border-radius:99px;"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;min-width:0;">
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Win %</div><div style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${s.wr>=50?'var(--grn)':'var(--red)'};">${s.wr}%</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg W</div><div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--grn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fmtE(s.avgW,false)}</div></div>
-            <div><div style="font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:2px;">Avg L</div><div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">−${fmtE(s.avgL,false)}</div></div>
+          <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${wr>=50?'var(--grn)':'var(--red)'};">${wr}%</span>
+        </div>`;
+      }
+
+      // ── DESKTOP TABLE (≥769px) ──
+      const thStyle=`style="padding:8px 12px;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;font-weight:500;text-align:right;border-bottom:0.5px solid var(--line);"`;
+      const thStyleLeft=`style="padding:8px 12px;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;font-weight:500;text-align:left;border-bottom:0.5px solid var(--line);"`;
+      const desktopRows=rowData.map(({key,cfg,s})=>{
+        const dotColor=cfg.color;
+        return `<tr style="border-bottom:0.5px solid var(--line);transition:background 0.12s;" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">
+          <td style="padding:10px 12px;font-size:13px;font-weight:600;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;display:inline-block;"></span>
+              ${cfg.label}
+            </div>
+          </td>
+          <td style="padding:10px 12px;text-align:right;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--t2);">${s.total}</td>
+          <td style="padding:10px 12px;text-align:right;">${winBar(s.wr,dotColor)}</td>
+          <td style="padding:10px 12px;text-align:right;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--grn);">${s.avgW>0?fmtE(s.avgW,false):'—'}</td>
+          <td style="padding:10px 12px;text-align:right;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--red);">${s.avgL>0?'−'+fmtE(s.avgL,false):'—'}</td>
+          <td style="padding:10px 12px;text-align:right;">${pnlPill(s.totalNet)}</td>
+        </tr>`;
+      }).join('');
+      const desktopTable=`<div class="taginst-desktop" style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr>
+            <th ${thStyleLeft}>Instrument</th>
+            <th ${thStyle}>Trades</th>
+            <th ${thStyle}>Win %</th>
+            <th ${thStyle}>Avg Win</th>
+            <th ${thStyle}>Avg Loss</th>
+            <th ${thStyle}>Net P&L</th>
+          </tr></thead>
+          <tbody>${desktopRows}</tbody>
+        </table>
+      </div>`;
+
+      // ── MOBILE EXPANDABLE ROWS (≤768px) ──
+      const mobileRows=rowData.map(({key,cfg,s})=>{
+        const dotColor=cfg.color;
+        const netColor=Math.abs(s.totalNet)<0.005?'var(--t2)':s.totalNet>0?'var(--grn)':'var(--red)';
+        const rowId=`taginst-row-${key}`;
+        const detailId=`taginst-detail-${key}`;
+        const chevronId=`taginst-chev-${key}`;
+        return `<div style="margin-bottom:8px;">
+          <div id="${rowId}" onclick="
+            var d=document.getElementById('${detailId}');
+            var ch=document.getElementById('${chevronId}');
+            var open=d.style.display!=='none'&&d.style.display!=='';
+            d.style.display=open?'none':'grid';
+            ch.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+          " style="display:flex;align-items:center;gap:10px;height:44px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:0 12px;cursor:pointer;transition:border-color 0.15s;box-sizing:border-box;"
+          onmouseenter="this.style.borderColor='var(--line2)'" onmouseleave="this.style.borderColor='var(--line)'">
+            <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;display:inline-block;"></span>
+            <span style="font-size:13px;font-weight:600;flex:1;min-width:0;">${cfg.label}</span>
+            <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);margin-right:2px;">${s.total}t</span>
+            <div style="width:52px;height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;flex-shrink:0;">
+              <div style="width:${s.wr}%;height:4px;background:${dotColor};border-radius:99px;"></div>
+            </div>
+            <span style="font-size:12px;font-family:'JetBrains Mono',monospace;color:${netColor};flex-shrink:0;margin-left:6px;min-width:56px;text-align:right;">${fmtE(s.totalNet)}</span>
+            <svg id="${chevronId}" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--t3);flex-shrink:0;transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
-          <div style="padding-top:8px;border-top:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">Net P&L</span>
-            <span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${c};">${fmtE(s.totalNet)}</span>
+          <div id="${detailId}" style="display:none;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;padding:0 2px;">
+            <div class="mcard" style="padding:10px 12px;">
+              <div class="ml">Avg Win</div>
+              <div class="mv" style="font-size:14px;color:var(--grn);">${s.avgW>0?fmtE(s.avgW,false):'—'}</div>
+            </div>
+            <div class="mcard" style="padding:10px 12px;">
+              <div class="ml">Avg Loss</div>
+              <div class="mv" style="font-size:14px;color:var(--red);">${s.avgL>0?'−'+fmtE(s.avgL,false):'—'}</div>
+            </div>
           </div>
         </div>`;
-      }).filter(Boolean).join('');
-      dirEl.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;">${cards}</div>${untaggedCount?`<div style="margin-top:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:''}`;
+      }).join('');
+      const mobileList=`<div class="taginst-mobile">${mobileRows}</div>`;
+
+      // CSS-only show/hide via media query (injected once per render into a style tag keyed to this element)
+      const mediaStyle=`<style>
+        .taginst-desktop{display:none;}
+        .taginst-mobile{display:block;}
+        @media(min-width:769px){
+          .taginst-desktop{display:block;}
+          .taginst-mobile{display:none;}
+        }
+      </style>`;
+
+      const footnote=untaggedCount?`<div style="margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);">${untaggedCount} untagged trade${untaggedCount!==1?'s':''}</div>`:'';
+      dirEl.innerHTML=mediaStyle+desktopTable+mobileList+footnote;
     }
   }
 
