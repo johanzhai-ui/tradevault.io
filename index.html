@@ -1151,9 +1151,44 @@ function getCurrentUserId(){
   }catch(e){return null;}
 }
 function isDemoUser(){return getCurrentUserId()===DEMO_UUID;}
-const H=()=>({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+(accessToken||SB_KEY),'Prefer':'return=representation'});
+const H=()=>({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+(accessToken||SB_KEY)});
 
-// ── AUTH ──
+// ── DB HELPERS ──
+async function sbGet(table,qs=''){
+  const uid=getCurrentUserId();
+  const userFilter=uid?`user_id=eq.${uid}`:'';
+  const fullQs=userFilter?(qs?`${userFilter}&${qs}`:userFilter):qs;
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?${fullQs}`,{headers:{...H(),'Accept':'application/json'}});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+async function sbInsert(table,data){
+  const uid=getCurrentUserId();
+  const rows=Array.isArray(data)?data:[data];
+  const withUser=rows.map(row=>({...row,user_id:uid}));
+  const r=await fetch(`${SB_URL}/rest/v1/${table}`,{
+    method:'POST',
+    headers:{...H(),'Prefer':'return=minimal'},
+    body:JSON.stringify(withUser)
+  });
+  if(!r.ok)throw new Error(await r.text());
+  return r.status===204?[]:r.json().catch(()=>[]);
+}
+async function sbUpdate(table,id,data){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,{
+    method:'PATCH',
+    headers:{...H(),'Prefer':'return=minimal'},
+    body:JSON.stringify(data)
+  });
+  if(!r.ok)throw new Error(await r.text());
+}
+async function sbDelete(table,id){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,{
+    method:'DELETE',
+    headers:{...H(),'Prefer':'return=minimal'}
+  });
+  if(!r.ok)throw new Error(await r.text());
+}
 async function doLogin(){
   const email=document.getElementById('login-email').value.trim();
   const pass=document.getElementById('login-pass').value;
@@ -1318,32 +1353,6 @@ async function loginWithBiometrics(){
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app-layout').style.display='none';
 })();
-
-async function sbGet(table,qs=''){
-  const uid=getCurrentUserId();
-  // Filter by user_id for all tables, ignore extra qs for goal
-  const userFilter=uid?`user_id=eq.${uid}`:'';
-  const fullQs=userFilter?(qs?`${userFilter}&${qs}`:userFilter):qs;
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?${fullQs}`,{headers:H()});
-  if(!r.ok)throw new Error(await r.text());
-  return r.json();
-}
-async function sbInsert(table,data){
-  const uid=getCurrentUserId();
-  const rows=Array.isArray(data)?data:[data];
-  const withUser=rows.map(row=>({...row,user_id:uid}));
-  const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:H(),body:JSON.stringify(withUser)});
-  if(!r.ok)throw new Error(await r.text());
-  return r.json();
-}
-async function sbUpdate(table,id,data){
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{...H(),'Prefer':'return=minimal'},body:JSON.stringify(data)});
-  if(!r.ok)throw new Error(await r.text());
-}
-async function sbDelete(table,id){
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:H()});
-  if(!r.ok)throw new Error(await r.text());
-}
 
 let entries=[], positions=[], dividends=[];
 let goal={total:100000,monthly:10000,deadline:'2026-12-31',year:2026};
