@@ -120,6 +120,22 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .card{background:var(--bg1);border:0.5px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:12px;}
 .card-label{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;}
 
+/* ── COLLAPSIBLE ANALYTICS CARDS ── */
+.acard{background:var(--bg1);border:0.5px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden;}
+.acard-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;-webkit-user-select:none;gap:10px;}
+.acard-header:hover{background:rgba(255,255,255,0.02);}
+.acard-title{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;flex:1;}
+.acard-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.acard-badge{font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600;padding:2px 7px;border-radius:99px;}
+.acard-chevron{color:var(--t3);transition:transform 0.22s cubic-bezier(.4,0,.2,1);flex-shrink:0;display:flex;align-items:center;}
+.acard-chevron svg{width:14px;height:14px;}
+.acard.collapsed .acard-chevron{transform:rotate(-90deg);}
+.acard-body{padding:0 18px 16px;}
+.acard.collapsed .acard-body{display:none;}
+/* top border only when open */
+.acard:not(.collapsed) .acard-body{border-top:0.5px solid var(--line);}
+.acard:not(.collapsed) .acard-body{padding-top:14px;}
+
 /* METRIC CARDS */
 .mcard{background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:14px 16px;}
 .mcard .ml{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
@@ -715,52 +731,109 @@ textarea:focus{border-color:var(--grn);}
           <button class="btn-ghost" onclick="autoTagAllEntries()" title="Auto-detect Call/Put from trade notes">⚡ Auto-tag directions</button>
         </div>
         <!-- Direction / instrument breakdown -->
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">Performance by instrument & direction</div>
-          <div id="a-direction-content"><div class="empty"><div class="empty-icon">📊</div>Add trades with instrument tags to see breakdown.</div></div>
+        <div class="acard" id="acard-direction">
+          <div class="acard-header" onclick="toggleACard('acard-direction')">
+            <div class="acard-title">📊 Performance by instrument &amp; direction</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-direction-content"><div class="empty"><div class="empty-icon">📊</div>Add trades with instrument tags to see breakdown.</div></div>
+          </div>
         </div>
+
         <!-- Quarterly view -->
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">Quarterly performance</div>
-          <div id="a-quarterly-content"></div>
+        <div class="acard" id="acard-quarterly">
+          <div class="acard-header" onclick="toggleACard('acard-quarterly')">
+            <div class="acard-title">📅 Quarterly performance</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-quarterly-content"></div>
+          </div>
         </div>
+
         <!-- Top performers -->
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">🏆 Top 5 — Best & Worst Underlyings</div>
-          <div id="a-underlying-content"><div class="empty"><div class="empty-icon">🏢</div>Add trades to see performance by company.</div></div>
+        <div class="acard" id="acard-underlying">
+          <div class="acard-header" onclick="toggleACard('acard-underlying')">
+            <div class="acard-title">🏆 Best &amp; Worst underlyings</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-underlying-content"><div class="empty"><div class="empty-icon">🏢</div>Add trades to see performance by company.</div></div>
+          </div>
         </div>
 
         <!-- Untagged trades -->
-        <div class="card" style="margin-bottom:12px;" id="a-untagged-card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div class="card-label" style="margin-bottom:0;">Untagged trades <span id="a-untagged-count" style="color:var(--amb);"></span></div>
-            <button class="btn-ghost" style="font-size:11px;" onclick="autoTagAllEntries()">⚡ Auto-tag all</button>
+        <div class="acard collapsed" id="acard-untagged" style="display:none;">
+          <div class="acard-header" onclick="toggleACard('acard-untagged')">
+            <div class="acard-title">🔖 Untagged trades</div>
+            <div class="acard-right">
+              <span id="a-untagged-count" class="acard-badge" style="background:var(--amb2);color:var(--amb);display:none;"></span>
+              <button class="btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="event.stopPropagation();autoTagAllEntries()">⚡ Auto-tag</button>
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
           </div>
-          <div id="a-untagged-list"></div>
+          <div class="acard-body">
+            <div id="a-untagged-list"></div>
+          </div>
         </div>
 
         <!-- Psychology analytics -->
-        <div class="card" style="margin-bottom:12px;border-color:rgba(168,85,247,0.2);">
-          <div class="card-label" style="color:var(--pur);">🧠 Psychology Analytics</div>
-          <div id="a-psych-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">🧠</div>Add trades with psychology fields to see insights.</div></div>
+        <div class="acard collapsed" id="acard-psych" style="border-color:rgba(168,85,247,0.2);">
+          <div class="acard-header" onclick="toggleACard('acard-psych')">
+            <div class="acard-title" style="color:var(--pur);">🧠 Psychology analytics</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-psych-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">🧠</div>Add trades with psychology fields to see insights.</div></div>
+          </div>
         </div>
 
         <!-- R:R Analytics -->
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">⚖️ Risk:Reward Distribution</div>
-          <div id="a-rr-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">⚖️</div>Add trades with R:R ratio to see distribution.</div></div>
+        <div class="acard collapsed" id="acard-rr">
+          <div class="acard-header" onclick="toggleACard('acard-rr')">
+            <div class="acard-title">⚖️ Risk:Reward distribution</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-rr-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">⚖️</div>Add trades with R:R ratio to see distribution.</div></div>
+          </div>
         </div>
 
         <!-- Setup type analytics -->
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">📋 Win Rate by Setup Type</div>
-          <div id="a-setup-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">📋</div>Tag your setup types to compare performance.</div></div>
+        <div class="acard collapsed" id="acard-setup">
+          <div class="acard-header" onclick="toggleACard('acard-setup')">
+            <div class="acard-title">📋 Win rate by setup type</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-setup-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">📋</div>Tag your setup types to compare performance.</div></div>
+          </div>
         </div>
 
         <!-- Entry time analytics -->
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-label">⏰ Performance by Entry Time</div>
-          <div id="a-time-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">⏰</div>Add entry times to see which hours perform best.</div></div>
+        <div class="acard collapsed" id="acard-time">
+          <div class="acard-header" onclick="toggleACard('acard-time')">
+            <div class="acard-title">⏰ Performance by entry time</div>
+            <div class="acard-right">
+              <div class="acard-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </div>
+          <div class="acard-body">
+            <div id="a-time-content"><div class="empty" style="padding:16px 0;"><div class="empty-icon">⏰</div>Add entry times to see which hours perform best.</div></div>
+          </div>
         </div>
       </div>
 
@@ -1332,6 +1405,7 @@ async function loadAll(){
     if(document.getElementById('s-daily-target'))document.getElementById('s-daily-target').value=riskSettings.dailyTarget||'';
     hideLoading();
     try{render();}catch(re){console.error('Render error:',re.message,re.stack);}
+    initACards();
     // Run alerts on load
     checkConsecutiveLosses();
     checkDailyCap(iso(new Date()));
@@ -2681,14 +2755,17 @@ function renderAnalytics(){
   }
 
   // ── UNTAGGED TRADES ──
-  const untaggedCard=document.getElementById('a-untagged-card');
+  const untaggedCard=document.getElementById('acard-untagged');
   const untaggedList=document.getElementById('a-untagged-list');
   const untaggedCount=document.getElementById('a-untagged-count');
   const untagged=trades.filter(e=>!e.direction);
   if(untaggedCard){
     untaggedCard.style.display=untagged.length?'block':'none';
   }
-  if(untaggedCount)untaggedCount.textContent=untagged.length?`(${untagged.length})`:'';
+  if(untaggedCount){
+    untaggedCount.textContent=untagged.length?`${untagged.length}`:'';
+    untaggedCount.style.display=untagged.length?'inline-block':'none';
+  }
   if(untaggedList){
     if(!untagged.length){
       untaggedList.innerHTML=`<div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--grn);padding:8px 0;">✓ All trades tagged</div>`;
@@ -3229,6 +3306,28 @@ async function refreshData(){
   await loadAll();
   if(icon)icon.classList.remove('spin');
   toast('Data synced ✓');
+}
+
+// ── COLLAPSIBLE ANALYTICS CARDS ──
+const ACARD_STATE_KEY='tradevault_acard_state';
+function loadACardState(){try{return JSON.parse(localStorage.getItem(ACARD_STATE_KEY)||'{}');}catch{return {};}}
+function saveACardState(id,open){const s=loadACardState();s[id]=open;localStorage.setItem(ACARD_STATE_KEY,JSON.stringify(s));}
+function toggleACard(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const willOpen=el.classList.contains('collapsed');
+  el.classList.toggle('collapsed',!willOpen);
+  saveACardState(id,willOpen);
+}
+function initACards(){
+  const state=loadACardState();
+  document.querySelectorAll('.acard[id]').forEach(el=>{
+    const id=el.id;
+    // default: first two open, rest collapsed
+    const defaultOpen=['acard-direction','acard-quarterly','acard-underlying'].includes(id);
+    const open=state[id]!==undefined?state[id]:defaultOpen;
+    el.classList.toggle('collapsed',!open);
+  });
 }
 
 if('serviceWorker' in navigator){
