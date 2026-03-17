@@ -871,40 +871,49 @@ textarea:focus{border-color:var(--grn);}
 
     <!-- ── PSYCHOLOGY FIELDS (trade only) ── -->
     <div id="e-psych-wrap" class="psych-wrap">
-      <div class="psych-title">🧠 Trade Psychology</div>
-      <div class="row2">
-        <div class="fg" style="margin-bottom:8px;">
-          <label>R:R Ratio <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
-          <input type="number" id="e-rr" placeholder="e.g. 2.5" step="0.1" min="0" style="background:var(--bg2);">
+      <!-- Toggle row: always visible -->
+      <button type="button" class="psych-toggle" id="e-psych-toggle" onclick="togglePsych()">
+        <span class="psych-toggle-icon">🧠</span>
+        <span class="psych-toggle-label" id="e-psych-label">Add psychology data</span>
+        <span class="psych-toggle-summary" id="e-psych-summary"></span>
+        <svg class="psych-chevron" id="e-psych-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <!-- Collapsible body -->
+      <div class="psych-body" id="e-psych-body"><div class="psych-body-inner">
+        <div class="row2" style="margin-top:10px;">
+          <div class="fg" style="margin-bottom:8px;">
+            <label>R:R Ratio <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
+            <input type="number" id="e-rr" placeholder="e.g. 2.5" step="0.1" min="0" style="background:var(--bg2);" oninput="updatePsychSummary()">
+          </div>
+          <div class="fg" style="margin-bottom:8px;">
+            <label>Entry Time <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
+            <input type="time" id="e-entry-time" style="background:var(--bg2);" onchange="updatePsychSummary()">
+          </div>
         </div>
         <div class="fg" style="margin-bottom:8px;">
-          <label>Entry Time <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
-          <input type="time" id="e-entry-time" style="background:var(--bg2);">
+          <label>Setup Type <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
+          <div class="setup-btns" id="e-setup-btns">
+            <button type="button" class="setup-btn" data-setup="breakout" onclick="setSetup('breakout',this)">Breakout</button>
+            <button type="button" class="setup-btn" data-setup="pullback" onclick="setSetup('pullback',this)">Pullback</button>
+            <button type="button" class="setup-btn" data-setup="reversal" onclick="setSetup('reversal',this)">Reversal</button>
+            <button type="button" class="setup-btn" data-setup="earnings" onclick="setSetup('earnings',this)">Earnings</button>
+            <button type="button" class="setup-btn" data-setup="momentum" onclick="setSetup('momentum',this)">Momentum</button>
+            <button type="button" class="setup-btn" data-setup="trend" onclick="setSetup('trend',this)">Trend Follow</button>
+            <button type="button" class="setup-btn" data-setup="other" onclick="setSetup('other',this)">Other</button>
+          </div>
         </div>
-      </div>
-      <div class="fg" style="margin-bottom:8px;">
-        <label>Setup Type <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
-        <div class="setup-btns" id="e-setup-btns">
-          <button type="button" class="setup-btn" data-setup="breakout" onclick="setSetup('breakout',this)">Breakout</button>
-          <button type="button" class="setup-btn" data-setup="pullback" onclick="setSetup('pullback',this)">Pullback</button>
-          <button type="button" class="setup-btn" data-setup="reversal" onclick="setSetup('reversal',this)">Reversal</button>
-          <button type="button" class="setup-btn" data-setup="earnings" onclick="setSetup('earnings',this)">Earnings</button>
-          <button type="button" class="setup-btn" data-setup="momentum" onclick="setSetup('momentum',this)">Momentum</button>
-          <button type="button" class="setup-btn" data-setup="trend" onclick="setSetup('trend',this)">Trend Follow</button>
-          <button type="button" class="setup-btn" data-setup="other" onclick="setSetup('other',this)">Other</button>
+        <div class="fg" style="margin-bottom:0;">
+          <label>Emotional State <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
+          <div class="mood-btns" id="e-mood-btns">
+            <button type="button" class="mood-btn" data-mood="calm" onclick="setMood('calm',this)">😌 Calm</button>
+            <button type="button" class="mood-btn" data-mood="focused" onclick="setMood('focused',this)">🎯 Focused</button>
+            <button type="button" class="mood-btn" data-mood="confident" onclick="setMood('confident',this)">💪 Confident</button>
+            <button type="button" class="mood-btn" data-mood="anxious" onclick="setMood('anxious',this)">😰 Anxious</button>
+            <button type="button" class="mood-btn" data-mood="fomo" onclick="setMood('fomo',this)">😤 FOMO</button>
+            <button type="button" class="mood-btn" data-mood="revenge" onclick="setMood('revenge',this)">😡 Revenge</button>
+          </div>
         </div>
-      </div>
-      <div class="fg" style="margin-bottom:0;">
-        <label>Emotional State <span style="color:var(--t3);font-weight:400;font-size:11px;">optional</span></label>
-        <div class="mood-btns" id="e-mood-btns">
-          <button type="button" class="mood-btn" data-mood="calm" onclick="setMood('calm',this)">😌 Calm</button>
-          <button type="button" class="mood-btn" data-mood="focused" onclick="setMood('focused',this)">🎯 Focused</button>
-          <button type="button" class="mood-btn" data-mood="confident" onclick="setMood('confident',this)">💪 Confident</button>
-          <button type="button" class="mood-btn" data-mood="anxious" onclick="setMood('anxious',this)">😰 Anxious</button>
-          <button type="button" class="mood-btn" data-mood="fomo" onclick="setMood('fomo',this)">😤 FOMO</button>
-          <button type="button" class="mood-btn" data-mood="revenge" onclick="setMood('revenge',this)">😡 Revenge</button>
-        </div>
-      </div>
+      </div></div>
     </div>
 
     <div class="modal-footer">
@@ -944,8 +953,22 @@ textarea:focus{border-color:var(--grn);}
 .spin{animation:spin 0.7s linear infinite;}
 
 /* ── PSYCHOLOGY FIELDS ── */
-.psych-wrap{background:var(--bg3);border:0.5px solid rgba(168,85,247,0.2);border-radius:var(--r2);padding:12px 14px;margin-bottom:12px;}
-.psych-wrap .psych-title{font-size:10px;color:var(--pur);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.psych-wrap{background:var(--bg3);border:0.5px solid rgba(168,85,247,0.2);border-radius:var(--r2);padding:0;margin-bottom:12px;overflow:hidden;}
+/* Toggle button row */
+.psych-toggle{width:100%;display:flex;align-items:center;gap:8px;padding:10px 14px;background:none;border:none;cursor:pointer;text-align:left;touch-action:manipulation;color:var(--pur);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;transition:background 0.15s;}
+.psych-toggle:hover{background:rgba(168,85,247,0.06);}
+.psych-toggle-icon{flex-shrink:0;font-size:13px;}
+.psych-toggle-label{flex-shrink:0;}
+.psych-toggle-summary{flex:1;font-size:11px;color:var(--t2);font-weight:400;letter-spacing:0;text-transform:none;font-family:'Space Grotesk',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.psych-chevron{width:14px;height:14px;flex-shrink:0;color:var(--t3);transition:transform 0.25s cubic-bezier(.4,0,.2,1);}
+.psych-chevron.open{transform:rotate(180deg);}
+/* Animated body */
+.psych-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.28s cubic-bezier(.4,0,.2,1);}
+.psych-body.open{grid-template-rows:1fr;}
+.psych-body-inner{overflow:hidden;padding:0 14px;}
+.psych-body.open .psych-body-inner{padding:0 14px 12px;}
+/* divider between toggle and body when open */
+.psych-wrap.psych-open .psych-toggle{border-bottom:0.5px solid rgba(168,85,247,0.15);}
 .mood-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .mood-btn{padding:6px 12px;border-radius:99px;border:0.5px solid var(--line2);background:var(--bg2);color:var(--t2);font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all 0.15s;touch-action:manipulation;}
 .mood-btn.active-calm{border-color:var(--grn);background:var(--grn2);color:var(--grn);}
@@ -1367,6 +1390,7 @@ function setCategory(cat, btn){
   updateNetPreview();
   const psychWrap=document.getElementById('e-psych-wrap');
   if(psychWrap)psychWrap.style.display=cat==='trade'?'block':'none';
+  if(cat==='trade')setPsychOpen(false);
 }
 
 function setDirection(dir){
@@ -1391,6 +1415,7 @@ function setSetup(setup, btn){
   currentSetup=currentSetup===setup?null:setup;
   document.querySelectorAll('.setup-btn').forEach(b=>b.classList.remove('active'));
   if(currentSetup&&btn)btn.classList.add('active');
+  updatePsychSummary();
 }
 
 function setMood(mood, btn){
@@ -1399,6 +1424,7 @@ function setMood(mood, btn){
     b.className='mood-btn';
   });
   if(currentMood&&btn)btn.classList.add('active-'+currentMood);
+  updatePsychSummary();
 }
 
 function resetPsychFields(){
@@ -1407,6 +1433,60 @@ function resetPsychFields(){
   document.querySelectorAll('.mood-btn').forEach(b=>b.className='mood-btn');
   const rr=document.getElementById('e-rr');if(rr)rr.value='';
   const et=document.getElementById('e-entry-time');if(et)et.value='';
+  // Collapse on reset
+  setPsychOpen(false);
+}
+
+function hasPsychData(){
+  const rr=document.getElementById('e-rr');
+  const et=document.getElementById('e-entry-time');
+  return !!(currentSetup||currentMood||(rr&&rr.value)||(et&&et.value));
+}
+
+function updatePsychSummary(){
+  const summary=document.getElementById('e-psych-summary');
+  const label=document.getElementById('e-psych-label');
+  if(!summary)return;
+  const moodEmoji={calm:'😌',focused:'🎯',confident:'💪',anxious:'😰',fomo:'😤',revenge:'😡'};
+  const parts=[];
+  if(currentMood)parts.push(moodEmoji[currentMood]+' '+(currentMood.charAt(0).toUpperCase()+currentMood.slice(1)));
+  if(currentSetup)parts.push(currentSetup.charAt(0).toUpperCase()+currentSetup.slice(1));
+  const rr=document.getElementById('e-rr');
+  if(rr&&rr.value)parts.push('R:R '+rr.value);
+  const et=document.getElementById('e-entry-time');
+  if(et&&et.value)parts.push(et.value);
+  const body=document.getElementById('e-psych-body');
+  const isOpen=body&&body.classList.contains('open');
+  if(parts.length&&!isOpen){
+    summary.textContent='· '+parts.join(' · ');
+    label.textContent='Psychology';
+  } else {
+    summary.textContent='';
+    label.textContent=isOpen?'Trade Psychology':'Add psychology data';
+  }
+}
+
+function setPsychOpen(open){
+  const body=document.getElementById('e-psych-body');
+  const chevron=document.getElementById('e-psych-chevron');
+  const wrap=document.getElementById('e-psych-wrap');
+  if(!body)return;
+  if(open){
+    body.classList.add('open');
+    chevron&&chevron.classList.add('open');
+    wrap&&wrap.classList.add('psych-open');
+  } else {
+    body.classList.remove('open');
+    chevron&&chevron.classList.remove('open');
+    wrap&&wrap.classList.remove('psych-open');
+  }
+  updatePsychSummary();
+}
+
+function togglePsych(){
+  const body=document.getElementById('e-psych-body');
+  const isOpen=body&&body.classList.contains('open');
+  setPsychOpen(!isOpen);
 }
 
 function openAddEntry(){
@@ -1429,6 +1509,7 @@ function openAddEntry(){
   if(dirWrap)dirWrap.style.display='block';
   const psychWrap=document.getElementById('e-psych-wrap');
   if(psychWrap)psychWrap.style.display='block';
+  setPsychOpen(false);
   openModal('modal-entry');
 }
 
@@ -1461,6 +1542,9 @@ function editEntry(id){
   const etEl=document.getElementById('e-entry-time');if(etEl)etEl.value=e.entry_time||'';
   const psychWrap=document.getElementById('e-psych-wrap');
   if(psychWrap)psychWrap.style.display=(e.category==='trade'||!e.category)?'block':'none';
+  // Auto-expand if any psych data was saved
+  const hasPsych=!!(e.rr!=null&&e.rr!==''||e.setup||e.mood||e.entry_time);
+  setPsychOpen(hasPsych);
   // Restore direction button
   currentDirection=e.direction||null;
   document.querySelectorAll('.dir-tag-btn').forEach(b=>{
