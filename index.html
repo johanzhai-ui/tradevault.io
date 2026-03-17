@@ -105,7 +105,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 /* SECTIONS */
 .sec{display:none;}
 .sec.active{display:block;}
-@media(max-width:768px){.sec{padding:0 14px;}}
+@media(max-width:768px){.sec{padding:0 14px;box-sizing:border-box;width:100%;overflow-x:hidden;}}
 
 /* CARDS */
 .card{background:var(--bg1);border:0.5px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:12px;}
@@ -214,28 +214,29 @@ html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:'Space G
 .hnote{font-size:11px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .hpnl{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
 /* Month group */
-.month-group{margin-bottom:10px;}
-.week-group{margin-bottom:4px;border-radius:var(--r2);overflow:hidden;}
-.week-header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;overflow:hidden;}
+.month-group{margin-bottom:10px;width:100%;min-width:0;max-width:100%;overflow:hidden;}
+.week-group{margin-bottom:4px;border-radius:var(--r2);overflow:hidden;width:100%;min-width:0;}
+.week-header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;overflow:hidden;width:100%;box-sizing:border-box;}
 .week-header:hover{border-color:var(--line2);}
 .week-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
 .month-entries.open{display:block!important;}
-.month-header{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;min-width:0;overflow:hidden;}
+.month-header{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);cursor:pointer;user-select:none;transition:border-color 0.15s;min-width:0;overflow:hidden;width:100%;box-sizing:border-box;}
 .month-header:hover{border-color:var(--line2);}
 .month-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent;}
 .month-chevron{width:16px;height:16px;flex-shrink:0;color:var(--t3);transition:transform 0.2s;}
 .month-chevron.open{transform:rotate(90deg);}
 .month-name{font-size:13px;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .month-meta{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
-.month-total{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
+.month-total{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;margin-left:4px;}
 @media(max-width:768px){
   .month-meta{display:none;}
   .month-total{font-size:13px;}
 }
-.month-entries{display:none;border:0.5px solid var(--line);border-top:none;border-bottom-left-radius:var(--r2);border-bottom-right-radius:var(--r2);overflow:hidden;}
+.month-entries{display:none;border:0.5px solid var(--line);border-top:none;border-bottom-left-radius:var(--r2);border-bottom-right-radius:var(--r2);overflow:hidden;width:100%;box-sizing:border-box;}
 .month-entries.open{display:block;}
-.hrow{background:var(--bg2);border:none;border-top:0.5px solid var(--line);border-radius:0;padding:10px 14px;display:flex;align-items:center;gap:10px;overflow:hidden;min-width:0;}
+.hrow{background:var(--bg2);border:none;border-top:0.5px solid var(--line);border-radius:0;padding:10px 14px;display:flex;align-items:center;gap:10px;overflow:hidden;min-width:0;width:100%;box-sizing:border-box;}
 .hrow:first-child{border-top:none;}
+#h-list{overflow:hidden;min-width:0;width:100%;}
 
 /* MONTH ROWS */
 .mrow{background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);padding:11px 13px;display:flex;align-items:center;gap:10px;}
@@ -347,9 +348,9 @@ textarea:focus{border-color:var(--grn);}
 .pace-bar-required{position:absolute;top:-4px;bottom:-4px;width:2px;background:rgba(255,255,255,0.5);border-radius:2px;}
 
 /* SWIPE TO DELETE */
-.swipe-wrap{position:relative;overflow:hidden;border-radius:var(--r2);margin-bottom:0;}
+.swipe-wrap{position:relative;overflow:hidden;border-radius:var(--r2);margin-bottom:0;width:100%;min-width:0;box-sizing:border-box;}
 .swipe-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600;border-radius:0 var(--r2) var(--r2) 0;}
-.swipe-content{position:relative;transition:transform 0.2s ease;background:var(--bg2);}
+.swipe-content{position:relative;transition:transform 0.2s ease;background:var(--bg2);width:100%;min-width:0;box-sizing:border-box;overflow:hidden;}
 .swipe-content.swiped{transform:translateX(-80px);}
 
 /* STREAK CARD */
@@ -643,7 +644,7 @@ textarea:focus{border-color:var(--grn);}
             <button class="h-chip" data-filter="interest" onclick="setHistoryFilter('interest',this)">Interest</button>
           </div>
         </div>
-        <div id="h-list" style="display:grid;gap:7px;"></div>
+        <div id="h-list" style="display:grid;gap:7px;width:100%;min-width:0;overflow:hidden;"></div>
         <div class="empty" id="h-empty" style="display:none;"><div class="empty-icon">📋</div>No entries yet.<br>Add your first week in P&L Tracker.</div>
         <div class="empty" id="h-no-results" style="display:none;"><div class="empty-icon">🔍</div>No results found.</div>
       </div>
@@ -2238,7 +2239,7 @@ function renderHistory(){
         <div class="month-meta">${mEntries.length} trade${mEntries.length!==1?'s':''} · ${wins}W ${losses}L</div>
         <div class="month-total" style="color:${mColor}">${fmtE(mNet)}</div>
       </div>
-      <div class="${isMOpen?'month-entries open':'month-entries'}" id="sec-entries-${mk}" style="padding:8px;">${weekHTML}</div>
+      <div class="${isMOpen?'month-entries open':'month-entries'}" id="sec-entries-${mk}" style="padding:6px;box-sizing:border-box;width:100%;">${weekHTML}</div>
     </div>`;
   }).join('');
 }
