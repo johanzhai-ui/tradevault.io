@@ -1391,7 +1391,7 @@ async function loadAll(){
     ]);
     entries=e.map(x=>{
       const dir=x.direction||null;
-      return {id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade',direction:dir,journal:x.journal||'',rr:x.rr?parseFloat(x.rr):null,setup:x.setup||null,mood:x.mood||null,entry_time:x.entry_time||null};
+      return {id:x.id,date:x.date,pnl:parseFloat(x.pnl),tax:parseFloat(x.tax||0),company:x.company||'',note:x.note||'',net_pnl:parseFloat(x.net_pnl||x.pnl),category:x.category||'trade',direction:x.direction||null,journal:x.journal||'',rr:x.rr!=null?parseFloat(x.rr):null,setup:x.setup||null,mood:x.mood||null,entry_time:x.entry_time||null};
     });
     positions=p.map(x=>({id:x.id,ticker:x.ticker,name:x.name,type:x.type,shares:parseFloat(x.shares),avg:parseFloat(x.avg_price),current:parseFloat(x.current_price)}));
     dividends=d.map(x=>({id:x.id,ticker:x.ticker,amount:parseFloat(x.amount),date:x.date,note:x.note||''}));
@@ -1788,7 +1788,7 @@ async function saveEntry(){
   const journal=document.getElementById('e-journal')?document.getElementById('e-journal').value.trim():'';
   const category=currentCategory||'trade';
   const direction=category==='trade'?(currentDirection||null):null;
-  // Psychology fields
+  // Psychology fields — only read if the elements exist
   const rrRaw=document.getElementById('e-rr')?document.getElementById('e-rr').value:'';
   const rr=rrRaw!==''?parseFloat(rrRaw):null;
   const setup=category==='trade'?(currentSetup||null):null;
@@ -1797,10 +1797,24 @@ async function saveEntry(){
   if(!date||isNaN(pnl)){toast('Please enter date and amount');return;}
   let tax=0, net=pnl;
   if(category==='trade'){const t=calcTax(pnl);tax=t.total;net=t.net;}
+
+  // Build payload — omit optional columns that don't exist in all DB schemas
+  function buildPayload(base){
+    const p={...base};
+    if(journal)p.journal=journal;
+    if(direction)p.direction=direction;
+    if(rr!=null)p.rr=rr;
+    if(setup)p.setup=setup;
+    if(mood)p.mood=mood;
+    if(entry_time)p.entry_time=entry_time;
+    return p;
+  }
+
   toast('Saving…',10000);
   try{
     if(editEntryId){
-      await sbUpdate('entries',editEntryId,{date,pnl,tax,company,note,net_pnl:net,category,direction,journal,rr,setup,mood,entry_time});
+      const payload=buildPayload({date,pnl,tax,company,note,net_pnl:net,category});
+      await sbUpdate('entries',editEntryId,payload);
       const idx=entries.findIndex(x=>x.id===editEntryId);
       if(idx>-1)entries[idx]={...entries[idx],date,pnl,tax,company,note,net_pnl:net,category,direction,journal,rr,setup,mood,entry_time};
       editEntryId=null;
@@ -1808,7 +1822,8 @@ async function saveEntry(){
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');toast('Entry updated ✓');
     } else {
       const id=uid();
-      await sbInsert('entries',[{id,date,pnl,note,tax,company,net_pnl:net,category,direction,journal,rr,setup,mood,entry_time}]);
+      const payload=buildPayload({id,date,pnl,note,tax,company,net_pnl:net,category});
+      await sbInsert('entries',[payload]);
       entries.push({id,date,pnl,tax,company,note,net_pnl:net,category,direction,journal,rr,setup,mood,entry_time});
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');
