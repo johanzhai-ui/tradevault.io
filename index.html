@@ -1151,19 +1151,21 @@ async function sbGet(table,qs=''){
 async function sbInsert(table,data){
   const uid=getCurrentUserId();
   const rows=Array.isArray(data)?data:[data];
-  // Strip null/undefined values so missing DB columns don't cause errors
+  // Strip null/undefined values AND the id field — let Supabase auto-generate it
   const clean=rows.map(row=>{
     const r={...row,user_id:uid};
     Object.keys(r).forEach(k=>{if(r[k]==null)delete r[k];});
+    delete r.id; // let DB auto-generate the integer id
     return r;
   });
   const r=await fetch(`${SB_URL}/rest/v1/${table}`,{
     method:'POST',
-    headers:{...H(),'Prefer':'return=minimal'},
+    headers:{...H(),'Prefer':'return=representation'},
     body:JSON.stringify(clean)
   });
   if(!r.ok)throw new Error(await r.text());
-  return r.status===204?[]:r.json().catch(()=>[]);
+  const result=await r.json().catch(()=>[]);
+  return Array.isArray(result)?result:[result];
 }
 async function sbUpdate(table,id,data){
   // Strip null/undefined values so missing DB columns don't cause errors
@@ -1393,8 +1395,7 @@ async function loadAll(){
       goal={total:parseFloat(g[0].total),monthly:parseFloat(g[0].monthly),deadline:g[0].deadline,year:parseInt(g[0].year||2026)};
     } else {
       // No goal row yet for this user - create one
-      const uid=getCurrentUserId();
-      await sbInsert('goal',[{id:uid,total:100000,monthly:10000,deadline:'2026-12-31',year:2026}]);
+      await sbInsert('goal',[{total:100000,monthly:10000,deadline:'2026-12-31',year:2026}]);
     }
     document.getElementById('s-total').value=goal.total;
     document.getElementById('s-monthly').value=goal.monthly;
@@ -1435,7 +1436,7 @@ function fmtE(v,sign=true){
 }
 function monthKey(d){return d.slice(0,7);}
 function monthLbl(k){return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(k.slice(5))-1];}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function uid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});}
 
 function showSec(id,btn,type){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
@@ -1709,8 +1710,8 @@ async function savePosition(){
       if(idx>-1)positions[idx]={...positions[idx],ticker,name:name||ticker,type,shares,avg,current};
       editPosId=null;
     } else {
-      const id=uid();
-      await sbInsert('positions',[{id,ticker,name:name||ticker,type,shares,avg_price:avg,current_price:current}]);
+      const result=await sbInsert('positions',[{ticker,name:name||ticker,type,shares,avg_price:avg,current_price:current}]);
+      const id=result&&result[0]?result[0].id:uid();
       positions.push({id,ticker,name:name||ticker,type,shares,avg,current});
     }
     try{render();}catch(e){console.error(e);}closeModal('modal-position');toast('Position saved ✓');
@@ -1763,8 +1764,8 @@ async function saveDividend(){
   if(!ticker||isNaN(amount)||!date){toast('Fill in all fields');return;}
   toast('Saving…',10000);
   try{
-    const id=uid();
-    await sbInsert('dividends',[{id,ticker,amount,date,note}]);
+    const result=await sbInsert('dividends',[{ticker,amount,date,note}]);
+    const id=result&&result[0]?result[0].id:uid();
     dividends.unshift({id,ticker,amount,date,note});
     try{render();}catch(e){console.error(e);}closeModal('modal-dividend');
     document.getElementById('dv-ticker').value='';
@@ -1815,9 +1816,9 @@ async function saveEntry(){
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');toast('Entry updated ✓');
     } else {
-      const id=uid();
-      const payload=buildPayload({id,date,pnl,note,tax,company,net_pnl:net,category});
-      await sbInsert('entries',[payload]);
+      const payload=buildPayload({date,pnl,note,tax,company,net_pnl:net,category});
+      const result=await sbInsert('entries',[payload]);
+      const id=result&&result[0]?result[0].id:uid();
       entries.push({id,date,pnl,tax,company,note,net_pnl:net,category,direction,journal,rr,setup,mood,entry_time});
       entries.sort((a,b)=>a.date.localeCompare(b.date));
       try{render();}catch(e){console.error(e);}closeModal('modal-entry');
@@ -1860,13 +1861,11 @@ async function saveSettings(){
   localStorage.setItem('riskSettings',JSON.stringify(riskSettings));
   toast('Saving…',10000);
   try{
-    // Update goal by user_id
-const uid=getCurrentUserId();
-const gr=await fetch(`${SB_URL}/rest/v1/goal?user_id=eq.${uid}`,{method:'PATCH',headers:{...H(),'Prefer':'return=minimal'},body:JSON.stringify({total:t,monthly:m,deadline:d,year:yr})});
-if(!gr.ok){
-  // Try insert if no row exists yet
-  await sbInsert('goal',[{id:uid,total:t,monthly:m,deadline:d,year:yr}]);
-}
+    const uid=getCurrentUserId();
+    const gr=await fetch(`${SB_URL}/rest/v1/goal?user_id=eq.${uid}`,{method:'PATCH',headers:{...H(),'Prefer':'return=minimal'},body:JSON.stringify({total:t,monthly:m,deadline:d,year:yr})});
+    if(!gr.ok){
+      await sbInsert('goal',[{total:t,monthly:m,deadline:d,year:yr}]);
+    }
     try{render();}catch(e){console.error(e);}toast('Settings saved ✓');
   }catch(err){toast('⚠ '+err.message,5000);}
 }
