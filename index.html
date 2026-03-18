@@ -1159,11 +1159,10 @@ async function sbGet(table,qs=''){
 async function sbInsert(table,data){
   const uid=getCurrentUserId();
   const rows=Array.isArray(data)?data:[data];
-  // Strip null/undefined values AND the id field — let Supabase auto-generate it
   const clean=rows.map(row=>{
     const r={...row,user_id:uid};
     Object.keys(r).forEach(k=>{if(r[k]==null)delete r[k];});
-    delete r.id; // let DB auto-generate the integer id
+    delete r.id; // rely on DB default (gen_random_uuid()::text)
     return r;
   });
   const r=await fetch(`${SB_URL}/rest/v1/${table}`,{
