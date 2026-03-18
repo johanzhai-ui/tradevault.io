@@ -1195,14 +1195,28 @@ async function sbDelete(table,id){
 }
 async function sbUpsertGoal(data){
   const uid=getCurrentUserId();
-  const clean={...data,user_id:uid};
+  if(!uid)return;
+  const clean={...data};
   Object.keys(clean).forEach(k=>{if(clean[k]==null)delete clean[k];});
-  const r=await fetch(`${SB_URL}/rest/v1/goal`,{
-    method:'POST',
-    headers:{...H(),'Prefer':'resolution=merge-duplicates,return=minimal'},
+  // Try PATCH first (update existing row)
+  const patch=await fetch(`${SB_URL}/rest/v1/goal?user_id=eq.${uid}`,{
+    method:'PATCH',
+    headers:{...H(),'Prefer':'return=minimal'},
     body:JSON.stringify(clean)
   });
-  if(!r.ok)throw new Error(await r.text());
+  if(patch.ok){
+    // Check if any row was actually updated
+    const count=patch.headers.get('content-range');
+    if(count&&count!=='*/0')return; // row existed and was updated
+    if(patch.status===204)return;   // updated fine
+  }
+  // No existing row — INSERT new one with user_id
+  const insert=await fetch(`${SB_URL}/rest/v1/goal`,{
+    method:'POST',
+    headers:{...H(),'Prefer':'return=minimal'},
+    body:JSON.stringify({...clean,user_id:uid})
+  });
+  if(!insert.ok)throw new Error(await insert.text());
 }
 async function doLogin(){
   const email=document.getElementById('login-email').value.trim();
