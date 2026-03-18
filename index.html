@@ -1109,14 +1109,22 @@ textarea:focus{border-color:var(--grn);}
 const SB_URL='https://raouhtxqamcrftnxpvgo.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhb3VodHhxYW1jcmZ0bnhwdmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MDg2OTgsImV4cCI6MjA4ODk4NDY5OH0.eHd2Bt2OtsxOgvymxrnk3_esxLNS-SawARZOzF7XS6A';
 let accessToken=null;
-const SESSION_TIMEOUT=15*60*1000; // 15 minutes
+const SESSION_TIMEOUT=60*60*1000; // 60 minutes
 let sessionTimer=null;
 
 function resetSessionTimer(){
   clearTimeout(sessionTimer);
-  sessionTimer=setTimeout(()=>{
-    toast('Session expired — please sign in again',4000);
-    setTimeout(doLogout,4000);
+  sessionTimer=setTimeout(async()=>{
+    // First try to silently refresh the session token
+    const refreshed=await refreshSession().catch(()=>false);
+    if(refreshed){
+      // Token refreshed silently — user never notices
+      resetSessionTimer();
+      return;
+    }
+    // Refresh failed — show toast then logout
+    toast('Session expired — please sign in again',3000);
+    setTimeout(doLogout,3000);
   },SESSION_TIMEOUT);
 }
 
@@ -1272,15 +1280,30 @@ function onLoginSuccess(){
 }
 
 function doLogout(){
+  clearTimeout(sessionTimer);
   accessToken=null;
   sessionStorage.removeItem('sb_token');
   sessionStorage.removeItem('sb_refresh');
   localStorage.removeItem('faceid_registered');
-  document.getElementById('app-layout').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('login-pass').value='';
+  // Reset login form fully
+  const emailEl=document.getElementById('login-email');
+  const passEl=document.getElementById('login-pass');
+  const errEl=document.getElementById('login-err');
+  const btnEl=document.getElementById('login-btn');
+  if(emailEl)emailEl.value='';
+  if(passEl)passEl.value='';
+  if(errEl){errEl.style.display='none';errEl.textContent='';}
+  if(btnEl){btnEl.textContent='Sign in';btnEl.disabled=false;}
   document.getElementById('faceid-wrap').style.display='none';
   document.getElementById('setup-faceid-btn').style.display='none';
+  // Show login, hide app — force repaint for iOS PWA
+  const app=document.getElementById('app-layout');
+  const login=document.getElementById('login-screen');
+  app.style.display='none';
+  login.style.display='flex';
+  // Force iOS repaint
+  login.style.opacity='0.99';
+  requestAnimationFrame(()=>{login.style.opacity='1';});
 }
 
 // ── FACE ID / WEBAUTHN ──
