@@ -412,6 +412,17 @@ textarea:focus{border-color:var(--grn);}
 
 .divider{height:0.5px;background:var(--line);margin:4px 0 14px;}
 @media(min-width:769px){.mobile-only{display:none!important;}}
+/* ── TOGGLE SWITCH ── */
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:0.5px solid var(--line);}
+.toggle-wrap:last-child{border-bottom:none;}
+.toggle-info .sl{font-size:13px;font-weight:500;}
+.toggle-info .ss{font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.toggle-track{position:relative;width:44px;height:26px;flex-shrink:0;}
+.toggle-track input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--bg3);border-radius:99px;cursor:pointer;transition:background 0.2s;border:0.5px solid var(--line2);}
+.toggle-slider::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:2px;background:var(--t2);border-radius:50%;transition:transform 0.2s,background 0.2s;}
+.toggle-track input:checked+.toggle-slider{background:var(--grn2);border-color:var(--grn);}
+.toggle-track input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--grn);}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23080a0f'/%3E%3Ccircle cx='16' cy='16' r='13' fill='%230e1117'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%2305d68d' stroke-width='1.6' stroke-dasharray='56 20' stroke-dashoffset='10'/%3E%3Ccircle cx='16' cy='4' r='1.8' fill='%2305d68d'/%3E%3Ccircle cx='28' cy='16' r='1.8' fill='%2305d68d'/%3E%3Ccircle cx='16' cy='28' r='1.8' fill='%2305d68d'/%3E%3Ccircle cx='4' cy='16' r='1.8' fill='%2305d68d'/%3E%3Cpolyline points='10,20 13,16 16,18 20,12 24,10' fill='none' stroke='%23eef0f5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='24' cy='10' r='2' fill='%23eef0f5'/%3E%3C/svg%3E">
 </head>
@@ -553,7 +564,7 @@ textarea:focus{border-color:var(--grn);}
 
         <!-- Hero: Net P&L (large) + Win Rate + Expectancy -->
         <div class="card" style="margin-bottom:10px;" id="d-hero-card">
-          <div class="card-label">Net realized P&L (after tax)</div>
+          <div class="card-label" id="d-pnl-label">Net realized P&L (after tax)</div>
           <div class="hero-val" id="d-networth">0,00 €</div>
           <div style="margin-top:6px;">
             <span id="d-gross-badge" style="font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;"></span>
@@ -854,6 +865,20 @@ textarea:focus{border-color:var(--grn);}
 
 
           <div class="card" style="margin-top:12px;">
+            <div class="card-label">Display preferences</div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="sl">Show gross P&L (exclude tax &amp; fees)</div>
+                <div class="ss">Show pre-tax amounts across the entire app</div>
+              </div>
+              <label class="toggle-track">
+                <input type="checkbox" id="s-gross-mode" onchange="setGrossMode(this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px;">
             <div class="card-label">Data management</div>
             <div class="srow"><div><div class="sl">Export all data</div><div class="ss">CSV with all entries & positions</div></div><button class="btn-ghost" onclick="exportCSV()">Export CSV</button></div>
             <div class="srow" style="border:none;"><div><div class="sl" style="color:var(--red);">Clear all data</div><div class="ss">Permanently deletes everything</div></div><button class="btn-danger-sm" onclick="clearAll()">Clear all</button></div>
@@ -967,18 +992,18 @@ textarea:focus{border-color:var(--grn);}
       <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
         <span style="color:var(--t3);">TR Gain</span><span id="preview-gross" style="color:var(--t1);"></span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
+      <div id="preview-ket-row" style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
         <span style="color:var(--t3);">Kapitalertragsteuer 25%</span><span id="preview-ket" style="color:var(--red);"></span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
+      <div id="preview-soli-row" style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
         <span style="color:var(--t3);">Solidaritätszuschlag 1.375%</span><span id="preview-soli" style="color:var(--red);"></span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:8px;">
+      <div id="preview-fee-row" style="display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:8px;">
         <span style="color:var(--t3);">Fee</span><span style="color:var(--red);">−€1.00</span>
       </div>
       <div style="height:0.5px;background:var(--line2);margin-bottom:8px;"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;">Net profit</span>
+        <span id="net-preview-label" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;">Net profit</span>
         <span id="net-preview-val" style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-0.5px;"></span>
       </div>
     </div>
@@ -1457,6 +1482,7 @@ async function loadAll(){
     hideLoading();
     try{render();}catch(re){console.error('Render error:',re.message,re.stack);}
     initACards();
+    initGrossMode();
     // Run alerts on load
     checkConsecutiveLosses();
     checkDailyCap(iso(new Date()));
@@ -1480,6 +1506,28 @@ function toast(msg,duration=2600){
 function fmtE(v,sign=true){
   const s=sign&&v>0?'+':'';
   return s+v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+}
+
+// ── GROSS MODE (exclude tax & fees) ──
+let grossMode=false;
+function setGrossMode(on){
+  grossMode=on;
+  localStorage.setItem('grossMode',on?'1':'0');
+  // Update toggle in case called programmatically
+  const el=document.getElementById('s-gross-mode');
+  if(el)el.checked=on;
+  // Re-render everything
+  try{render();}catch(e){console.error(e);}
+}
+function initGrossMode(){
+  grossMode=localStorage.getItem('grossMode')==='1';
+  const el=document.getElementById('s-gross-mode');
+  if(el)el.checked=grossMode;
+}
+// Returns the correct P&L value for an entry based on grossMode
+function getPnL(e){
+  if(grossMode)return e.pnl||0;
+  return e.net_pnl!=null?e.net_pnl:e.pnl;
 }
 function monthKey(d){return d.slice(0,7);}
 function monthLbl(k){return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(k.slice(5))-1];}
@@ -1545,11 +1593,20 @@ function updateNetPreview(){
   const {ket,soli,net}=calcTax(pnl);
   preview.style.display='block';
   document.getElementById('preview-gross').textContent=fmtE(pnl,false);
+  // Show/hide tax lines based on grossMode
+  const ketRow=document.getElementById('preview-ket-row');
+  const soliRow=document.getElementById('preview-soli-row');
+  if(ketRow)ketRow.style.display=grossMode?'none':'flex';
+  if(soliRow)soliRow.style.display=grossMode?'none':'flex';
+  const feeRow=document.getElementById('preview-fee-row');
+  if(feeRow)feeRow.style.display=grossMode?'none':'flex';
   document.getElementById('preview-ket').textContent='−'+fmtE(ket,false);
   document.getElementById('preview-soli').textContent='−'+fmtE(soli,false);
   const val=document.getElementById('net-preview-val');
-  val.textContent=fmtE(net);
-  val.style.color=net>=0?'var(--grn)':'var(--red)';
+  const netLabel=document.getElementById('net-preview-label');
+  if(netLabel)netLabel.textContent=grossMode?'GROSS P&L':'NET PROFIT';
+  val.textContent=grossMode?fmtE(pnl):fmtE(net);
+  val.style.color=(grossMode?pnl:net)>=0?'var(--grn)':'var(--red)';
 }
 
 let currentCategory='trade', currentDirection=null;
@@ -1950,10 +2007,10 @@ function render(){renderDashboard();renderGoals();renderPnL();renderHistory();re
 function renderDashboard(){
   const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
   const monthMap={};
-  sorted.forEach(e=>{const k=monthKey(e.date);if(!monthMap[k])monthMap[k]=0;monthMap[k]+=(e.net_pnl!=null?e.net_pnl:e.pnl);});
+  sorted.forEach(e=>{const k=monthKey(e.date);if(!monthMap[k])monthMap[k]=0;monthMap[k]+=getPnL(e);});
   const totalDivs=dividends.reduce((s,d)=>s+d.amount,0);
   let cum=0;
-  const cumData=sorted.map(e=>{cum+=(e.net_pnl!=null?e.net_pnl:e.pnl);return parseFloat(cum.toFixed(2));});
+  const cumData=sorted.map(e=>{cum+=getPnL(e);return parseFloat(cum.toFixed(2));});
   const totalRealPnL=cumData.length?cumData[cumData.length-1]:0;
   const tradedWksSet=new Set(sorted.map(e=>{const wi=getWeekNum(e.date);return wi.year+'-W'+String(wi.week).padStart(2,'0');}));
 
@@ -1968,12 +2025,12 @@ function renderDashboard(){
   const totalTax=sorted.reduce((s,e)=>s+(e.tax||0),0);
 
   // Win/loss split
-  const winTrades=trades.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0);
-  const lossTrades=trades.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<=0);
+  const winTrades=trades.filter(e=>getPnL(e)>0);
+  const lossTrades=trades.filter(e=>getPnL(e)<=0);
   const winRate=trades.length?winTrades.length/trades.length:0;
   const lossRate=1-winRate;
-  const avgWin=winTrades.length?winTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/winTrades.length:0;
-  const avgLoss=lossTrades.length?Math.abs(lossTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/lossTrades.length):0;
+  const avgWin=winTrades.length?winTrades.reduce((s,e)=>s+getPnL(e),0)/winTrades.length:0;
+  const avgLoss=lossTrades.length?Math.abs(lossTrades.reduce((s,e)=>s+getPnL(e),0)/lossTrades.length):0;
 
   // Expectancy
   const expectancy=parseFloat(((winRate*avgWin)-(lossRate*avgLoss)).toFixed(2));
@@ -1995,11 +2052,13 @@ function renderDashboard(){
 
   // Gross badge
   const grossBadge=document.getElementById('d-gross-badge');
-  if(grossBadge) grossBadge.textContent=`Gross ${fmtE(totalGross,false)} · Tax −${fmtE(totalTax,false)}`;
+  const pnlLabel=document.getElementById('d-pnl-label');
+  if(pnlLabel)pnlLabel.textContent=grossMode?'Gross P&L (before tax)':'Net realized P&L (after tax)';
+  if(grossBadge)grossBadge.textContent=grossMode?`After tax: ${fmtE(totalGross-totalTax,false)}`:`Gross ${fmtE(totalGross,false)} · Tax −${fmtE(totalTax,false)}`;
 
   // Profit factor
-  const grossWins=winTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
-  const grossLosses=Math.abs(lossTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0));
+  const grossWins=winTrades.reduce((s,e)=>s+getPnL(e),0);
+  const grossLosses=Math.abs(lossTrades.reduce((s,e)=>s+getPnL(e),0));
   const profitFactor=grossLosses>0?(grossWins/grossLosses).toFixed(2):'∞';
 
   // Mobile weekly summary
@@ -2011,9 +2070,9 @@ function renderDashboard(){
     const monday=new Date(today);monday.setDate(today.getDate()-(dow-1));monday.setHours(0,0,0,0);
     const friday=new Date(monday);friday.setDate(monday.getDate()+4);
     const wkEntries=sorted.filter(e=>{const d=new Date(e.date);return d>=monday&&d<=friday;});
-    const wkNet=wkEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+    const wkNet=wkEntries.reduce((s,e)=>s+getPnL(e),0);
     const wkTrades=wkEntries.filter(e=>e.category==='trade'||!e.category);
-    const wkWins=wkTrades.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length;
+    const wkWins=wkTrades.filter(e=>getPnL(e)>0).length;
     const wkWr=wkTrades.length?Math.round(wkWins/wkTrades.length*100):0;
     const dailyTarget=riskSettings.dailyTarget||(goal.monthly/21);
     const wkTarget=dailyTarget*5;
@@ -2048,7 +2107,7 @@ function renderDashboard(){
   if(riskSettings.dailyCap>0){
     const todayK=iso(new Date());
     const todayTrades=sorted.filter(e=>e.date===todayK&&(e.category==='trade'||!e.category));
-    const todayLoss=Math.abs(Math.min(0,todayTrades.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)));
+    const todayLoss=Math.abs(Math.min(0,todayTrades.reduce((s,e)=>s+getPnL(e),0)));
     const capPct=Math.min(100,(todayLoss/riskSettings.dailyCap)*100);
     const capColor=capPct>=100?'var(--red)':capPct>=75?'var(--amb)':'var(--grn)';
     const existingCap=document.getElementById('d-daily-cap');
@@ -2078,10 +2137,10 @@ function renderDashboard(){
 function renderGoals(){
   const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
   let cum=0;
-  const cumData=sorted.map(e=>{cum+=(e.net_pnl!=null?e.net_pnl:e.pnl);return parseFloat(cum.toFixed(2));});
+  const cumData=sorted.map(e=>{cum+=getPnL(e);return parseFloat(cum.toFixed(2));});
   const totalRealPnL=cumData.length?cumData[cumData.length-1]:0;
   const tradedWksSet=new Set(sorted.map(e=>{const wi=getWeekNum(e.date);return wi.year+'-W'+String(wi.week).padStart(2,'0');}));
-  const avgW=tradedWksSet.size>0?sorted.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0)/tradedWksSet.size:0;
+  const avgW=tradedWksSet.size>0?sorted.reduce((s,e)=>s+getPnL(e),0)/tradedWksSet.size:0;
 
   // Yearly goal bar
   const pct=Math.max(0,Math.min(100,(totalRealPnL/goal.total)*100));
@@ -2126,7 +2185,7 @@ function renderGoals(){
   // Monthly stats
   const thisMonthK=iso(new Date()).slice(0,7);
   const currentMonthEntries=sorted.filter(e=>e.date.slice(0,7)===thisMonthK);
-  const currentMonthNet=currentMonthEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+  const currentMonthNet=currentMonthEntries.reduce((s,e)=>s+getPnL(e),0);
   const monthPct=goal.monthly>0?(currentMonthNet/goal.monthly)*100:0;
 
   // Monthly target card
@@ -2174,7 +2233,7 @@ function renderGoals(){
     const now=new Date();
     qMini.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">${qs.map(q=>{
       const qE=sorted.filter(e=>e.date.startsWith(yr)&&q.m.includes(e.date.slice(5,7)));
-      const qN=parseFloat(qE.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+      const qN=parseFloat(qE.reduce((s,e)=>s+getPnL(e),0).toFixed(2));
       const hit=qN>=qT;
       const curM=now.getMonth()+1;
       const isCur=q.m.map(Number).includes(curM)&&now.getFullYear()===yr;
@@ -2257,7 +2316,7 @@ function renderPnL(){
     const trades=dayEntries.filter(e=>e.category==='trade'||!e.category);
     const gross=trades.reduce((s,e)=>s+e.pnl,0);
     const tax=trades.reduce((s,e)=>s+(e.tax||0),0);
-    const net=dayEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+    const net=dayEntries.reduce((s,e)=>s+getPnL(e),0);
     const isFuture=d>today&&ds!==todayStr;
     const isToday=ds===todayStr;
     const hasTrades=dayEntries.length>0;
@@ -2322,7 +2381,7 @@ function renderPnL(){
 
       // Individual trade pills
       const tradePills=hasTrades?`<div class="day-trades-list">${dayTrades.map(e=>{
-        const n=e.net_pnl!=null?e.net_pnl:e.pnl;
+        const n=getPnL(e);
         return `<div class="day-trade-pill"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.company||'Trade'}${e.direction?' · '+e.direction.toUpperCase():''}</span><span style="color:${n>=0?'var(--grn)':'var(--red)'};flex-shrink:0;">${fmtE(n)}</span></div>`;
       }).join('')}</div>`:'';
 
@@ -2353,7 +2412,7 @@ function renderPnL(){
   // ── MONTHLY CHART ──
   const monthMap={};
   sorted.forEach(e=>{const k=monthKey(e.date);if(!monthMap[k])monthMap[k]={net:0,gross:0,tax:0};
-    monthMap[k].net+=(e.net_pnl!=null?e.net_pnl:e.pnl);
+    monthMap[k].net+=getPnL(e);
     if(e.category==='trade'||!e.category){monthMap[k].gross+=e.pnl;monthMap[k].tax+=(e.tax||0);}
   });
   const monthKeys=Object.keys(monthMap).sort();
@@ -2446,8 +2505,8 @@ function renderHistory(){
 
   // Apply filter chip
   if(historyFilter==='trade') allEntries=allEntries.filter(e=>e.category==='trade'||!e.category);
-  else if(historyFilter==='win') allEntries=allEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0);
-  else if(historyFilter==='loss') allEntries=allEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<0);
+  else if(historyFilter==='win') allEntries=allEntries.filter(e=>getPnL(e)>0);
+  else if(historyFilter==='loss') allEntries=allEntries.filter(e=>getPnL(e)<0);
   else if(historyFilter==='interest') allEntries=allEntries.filter(e=>e.category==='interest');
 
   // Apply search
@@ -2465,14 +2524,14 @@ function renderHistory(){
   if(!sorted.length){hl.innerHTML='';if(hnr)hnr.style.display='block';return;}
   if(hnr)hnr.style.display='none';
   let c=0;const cumMap={};
-  [...entries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{c+=(e.net_pnl!=null?e.net_pnl:e.pnl);cumMap[e.id]=parseFloat(c.toFixed(2));});
+  [...entries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{c+=getPnL(e);cumMap[e.id]=parseFloat(c.toFixed(2));});
   const currentMK=iso(new Date()).slice(0,7);
   const nowWI=getWeekNum(iso(new Date()));
   const monthGroups={};
   sorted.forEach(e=>{const mk=monthKey(e.date);if(!monthGroups[mk])monthGroups[mk]=[];monthGroups[mk].push(e);});
 
   function renderEntry(e){
-    const net=e.net_pnl!=null?e.net_pnl:e.pnl;
+    const net=getPnL(e);
     return `<div class="swipe-wrap" id="swipe-${e.id}">
       <div class="swipe-delete-bg" onclick="deleteEntry('${e.id}')">Delete</div>
       <div class="swipe-content hrow" id="swipe-content-${e.id}" ontouchstart="swipeStart(event,'${e.id}')" ontouchmove="swipeMove(event,'${e.id}')" ontouchend="swipeEnd(event,'${e.id}')">
@@ -2507,9 +2566,9 @@ function renderHistory(){
 
   hl.innerHTML=Object.keys(monthGroups).sort((a,b)=>b.localeCompare(a)).map(mk=>{
     const mEntries=monthGroups[mk];
-    const mNet=parseFloat(mEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
-    const wins=mEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0).length;
-    const losses=mEntries.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)<0).length;
+    const mNet=parseFloat(mEntries.reduce((s,e)=>s+getPnL(e),0).toFixed(2));
+    const wins=mEntries.filter(e=>getPnL(e)>0).length;
+    const losses=mEntries.filter(e=>getPnL(e)<0).length;
     const isMOpen=mk===currentMK;
     const mColor=mNet>=0?'var(--grn)':'var(--red)';
     const mName=['January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mk.slice(5))-1];
@@ -2518,7 +2577,7 @@ function renderHistory(){
     mEntries.forEach(e=>{const wi=getWeekNum(e.date);const wk=`${wi.year}-W${String(wi.week).padStart(2,'0')}`;if(!wkGroups[wk])wkGroups[wk]=[];wkGroups[wk].push(e);});
     const weekHTML=Object.keys(wkGroups).sort((a,b)=>b.localeCompare(a)).map(wk=>{
       const wE=wkGroups[wk];
-      const wNet=parseFloat(wE.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+      const wNet=parseFloat(wE.reduce((s,e)=>s+getPnL(e),0).toFixed(2));
       const wColor=wNet>=0?'var(--grn)':'var(--red)';
       const wNum=parseInt(wk.split('-W')[1]);
       const wYear=parseInt(wk.split('-')[0]);
@@ -2702,7 +2761,7 @@ function checkConsecutiveLosses(){
 function checkDailyCap(dateStr){
   if(!riskSettings.dailyCap||riskSettings.dailyCap<=0)return;
   const todayEntries=entries.filter(e=>e.date===dateStr&&(e.category==='trade'||!e.category));
-  const dayLoss=todayEntries.reduce((s,e)=>s+Math.min(0,e.net_pnl!=null?e.net_pnl:e.pnl),0);
+  const dayLoss=todayEntries.reduce((s,e)=>s+Math.min(0,getPnL(e)),0);
   if(dayLoss<=-riskSettings.dailyCap){
     const al=document.getElementById('loss-alert');
     const msg=document.getElementById('loss-alert-msg');
@@ -2739,17 +2798,17 @@ function renderAnalytics(){
     } else {
       function tagStats(arr){
         if(!arr.length)return null;
-        const wins=arr.filter(e=>(e.net_pnl||e.pnl)>0);
-        const losses=arr.filter(e=>(e.net_pnl||e.pnl)<=0);
-        const totalNet=arr.reduce((s,e)=>s+(e.net_pnl||e.pnl),0);
-        const avgW=wins.length?wins.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/wins.length:0;
-        const avgL=losses.length?Math.abs(losses.reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/losses.length):0;
+        const wins=arr.filter(e=>getPnL(e)>0);
+        const losses=arr.filter(e=>getPnL(e)<=0);
+        const totalNet=arr.reduce((s,e)=>s+getPnL(e),0);
+        const avgW=wins.length?wins.reduce((s,e)=>s+getPnL(e),0)/wins.length:0;
+        const avgL=losses.length?Math.abs(losses.reduce((s,e)=>s+getPnL(e),0)/losses.length):0;
         return {total:arr.length,wins:wins.length,wr:arr.length?Math.round(wins.length/arr.length*100):0,totalNet,avgW,avgL};
       }
 
       // Summary bar totals
-      const allTaggedNet=tagged.reduce((s,e)=>s+(e.net_pnl||e.pnl),0);
-      const allTaggedWins=tagged.filter(e=>(e.net_pnl||e.pnl)>0).length;
+      const allTaggedNet=tagged.reduce((s,e)=>s+getPnL(e),0);
+      const allTaggedWins=tagged.filter(e=>getPnL(e)>0).length;
       const bestTag=Object.entries(TAG_CONFIG).map(([key,cfg])=>{
         const arr=trades.filter(e=>e.direction===key);
         const s=tagStats(arr);
@@ -2837,7 +2896,7 @@ function renderAnalytics(){
         byCompany[c].totalNet+=e.net_pnl||e.pnl;
         byCompany[c].gross+=e.pnl||0;
         byCompany[c].tax+=e.tax||0;
-        if((e.net_pnl||e.pnl)>0)byCompany[c].wins++;
+        if(getPnL(e)>0)byCompany[c].wins++;
       });
       const allSorted=Object.entries(byCompany).sort((a,b)=>b[1].totalNet-a[1].totalNet);
       const top5=allSorted.slice(0,5);
@@ -2937,10 +2996,10 @@ function renderAnalytics(){
 
     const tiles=quarters.map(q=>{
       const qEntries=allSorted.filter(e=>e.date.startsWith(year)&&q.months.includes(e.date.slice(5,7)));
-      const qNet=parseFloat(qEntries.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0).toFixed(2));
+      const qNet=parseFloat(qEntries.reduce((s,e)=>s+getPnL(e),0).toFixed(2));
       cumulative+=qNet;
       const qTrades=qEntries.filter(e=>e.category==='trade'||!e.category);
-      const qWins=qTrades.filter(e=>(e.net_pnl||e.pnl)>0).length;
+      const qWins=qTrades.filter(e=>getPnL(e)>0).length;
       const pct=qTarget>0?(qNet/qTarget)*100:0;
       const hit=qNet>=qTarget;
       const partial=qNet>0&&!hit;
@@ -2994,7 +3053,7 @@ function renderAnalytics(){
       psychEl.innerHTML='<div class="empty" style="padding:16px 0;"><div class="empty-icon">🧠</div>Add trades with emotional state to see insights.</div>';
     } else {
       const byMood={};
-      moodTrades.forEach(e=>{if(!byMood[e.mood])byMood[e.mood]={trades:[],net:0,wins:0};byMood[e.mood].trades.push(e);byMood[e.mood].net+=e.net_pnl||e.pnl;if((e.net_pnl||e.pnl)>0)byMood[e.mood].wins++;});
+      moodTrades.forEach(e=>{if(!byMood[e.mood])byMood[e.mood]={trades:[],net:0,wins:0};byMood[e.mood].trades.push(e);byMood[e.mood].net+=e.net_pnl||e.pnl;if(getPnL(e)>0)byMood[e.mood].wins++;});
       const rows=Object.entries(byMood).sort((a,b)=>b[1].net-a[1].net).map(([mood,s])=>{
         const cfg=MOODS[mood]||{label:mood,c:'var(--t2)'};
         const wr=Math.round(s.wins/s.trades.length*100);
@@ -3025,8 +3084,8 @@ function renderAnalytics(){
       rrEl.innerHTML='<div class="empty" style="padding:16px 0;"><div class="empty-icon">⚖️</div>Add R:R ratios to see distribution.</div>';
     } else {
       const avgRR=(rrTrades.reduce((s,e)=>s+e.rr,0)/rrTrades.length).toFixed(2);
-      const winRR=rrTrades.filter(e=>(e.net_pnl||e.pnl)>0);
-      const lossRR=rrTrades.filter(e=>(e.net_pnl||e.pnl)<=0);
+      const winRR=rrTrades.filter(e=>getPnL(e)>0);
+      const lossRR=rrTrades.filter(e=>getPnL(e)<=0);
       const avgWinRR=winRR.length?(winRR.reduce((s,e)=>s+e.rr,0)/winRR.length).toFixed(2):0;
       const avgLossRR=lossRR.length?(lossRR.reduce((s,e)=>s+e.rr,0)/lossRR.length).toFixed(2):0;
       // Buckets: <1, 1-2, 2-3, 3+
@@ -3034,9 +3093,9 @@ function renderAnalytics(){
       const bucketRows=buckets.map(b=>{
         const bt=rrTrades.filter(e=>e.rr>=b.min&&e.rr<b.max);
         if(!bt.length)return '';
-        const bWins=bt.filter(e=>(e.net_pnl||e.pnl)>0).length;
+        const bWins=bt.filter(e=>getPnL(e)>0).length;
         const bWr=Math.round(bWins/bt.length*100);
-        const bNet=bt.reduce((s,e)=>s+(e.net_pnl||e.pnl),0);
+        const bNet=bt.reduce((s,e)=>s+getPnL(e),0);
         const c=bNet>=0?'var(--grn)':'var(--red)';
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:0.5px solid var(--line);border-radius:var(--r2);margin-bottom:5px;">
           <div style="min-width:56px;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--blu);">${b.label}</div>
@@ -3063,7 +3122,7 @@ function renderAnalytics(){
       setupEl.innerHTML='<div class="empty" style="padding:16px 0;"><div class="empty-icon">📋</div>Tag your setup types to compare performance.</div>';
     } else {
       const bySetup={};
-      setupTrades.forEach(e=>{if(!bySetup[e.setup])bySetup[e.setup]={trades:[],net:0,wins:0};bySetup[e.setup].trades.push(e);bySetup[e.setup].net+=e.net_pnl||e.pnl;if((e.net_pnl||e.pnl)>0)bySetup[e.setup].wins++;});
+      setupTrades.forEach(e=>{if(!bySetup[e.setup])bySetup[e.setup]={trades:[],net:0,wins:0};bySetup[e.setup].trades.push(e);bySetup[e.setup].net+=e.net_pnl||e.pnl;if(getPnL(e)>0)bySetup[e.setup].wins++;});
       const SETUP_EMOJI={breakout:'🚀',pullback:'↩️',reversal:'🔄',earnings:'📊',momentum:'⚡',trend:'📈',other:'📋'};
       const rows=Object.entries(bySetup).sort((a,b)=>b[1].net-a[1].net).map(([setup,s])=>{
         const wr=Math.round(s.wins/s.trades.length*100);
@@ -3096,7 +3155,7 @@ function renderAnalytics(){
         const bucket=h<10?'Pre-market (<10:00)':h<12?'Morning (10–12)':h<14?'Midday (12–14)':h<17?'Afternoon (14–17)':'Late (17+)';
         if(!byHour[bucket])byHour[bucket]={trades:[],net:0,wins:0,order:h};
         byHour[bucket].trades.push(e);byHour[bucket].net+=e.net_pnl||e.pnl;
-        if((e.net_pnl||e.pnl)>0)byHour[bucket].wins++;
+        if(getPnL(e)>0)byHour[bucket].wins++;
       });
       const rows=Object.entries(byHour).sort((a,b)=>a[1].order-b[1].order).map(([bucket,s])=>{
         const wr=Math.round(s.wins/s.trades.length*100);
@@ -3146,7 +3205,7 @@ function renderPaceCard(){
 
   // Remaining gap
   const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
-  const totalNet=sorted.reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+  const totalNet=sorted.reduce((s,e)=>s+getPnL(e),0);
   const gap=Math.max(0,goal.total-totalNet);
   const ahead=totalNet>goal.total;
 
@@ -3169,7 +3228,7 @@ function renderPaceCard(){
   const recentNet=sorted.filter(e=>{
     const wi=getWeekNum(e.date);
     return recentWeeks.includes(wi.year+'-W'+String(wi.week).padStart(2,'0'));
-  }).reduce((s,e)=>s+(e.net_pnl!=null?e.net_pnl:e.pnl),0);
+  }).reduce((s,e)=>s+getPnL(e),0);
   const avgWeekRecent=recentNet/Math.max(1,recentWeeks.length);
 
   // On track?
@@ -3272,7 +3331,7 @@ function renderStreak(){
   // Streak calculation
   let cur=0,best=0,tmp=0,tmpL=0,worstL=0;
   trades.forEach(e=>{
-    const n=e.net_pnl!=null?e.net_pnl:e.pnl;
+    const n=getPnL(e);
     if(n>0){tmp++;tmpL=0;}else{tmpL++;tmp=0;}
     if(tmp>best)best=tmp;
     if(tmpL>worstL)worstL=tmpL;
@@ -3286,9 +3345,9 @@ function renderStreak(){
     else break;
   }
 
-  const winTrades=trades.filter(e=>(e.net_pnl!=null?e.net_pnl:e.pnl)>0);
+  const winTrades=trades.filter(e=>getPnL(e)>0);
   const winRate=trades.length?Math.round(winTrades.length/trades.length*100):0;
-  const bestT=trades.reduce((b,e)=>(e.net_pnl||e.pnl)>(b.net_pnl||b.pnl)?e:b,trades[0]);
+  const bestT=trades.reduce((b,e)=>getPnL(e)>(b.net_pnl||b.pnl)?e:b,trades[0]);
   const curColor=cur>0?'var(--grn)':cur<0?'var(--red)':'var(--t3)';
   const curLabel=cur>0?`${Math.abs(cur)} trades in a row ↑`:cur<0?`${Math.abs(cur)} trades in a row ↓`:'—';
 
@@ -3346,12 +3405,12 @@ function generateMonthlyPDF(monthKey){
   const interest=monthEntries.filter(e=>e.category==='interest');
   const dividends_m=monthEntries.filter(e=>e.category==='dividend');
   const corrections=monthEntries.filter(e=>e.category==='tax_correction');
-  const totalNet=parseFloat(monthEntries.reduce((s,e)=>s+(e.net_pnl||e.pnl),0).toFixed(2));
+  const totalNet=parseFloat(monthEntries.reduce((s,e)=>s+getPnL(e),0).toFixed(2));
   const totalGross=parseFloat(trades.reduce((s,e)=>s+e.pnl,0).toFixed(2));
   const totalTax=parseFloat(trades.reduce((s,e)=>s+(e.tax||0),0).toFixed(2));
-  const wins=trades.filter(e=>(e.net_pnl||e.pnl)>0).length;
+  const wins=trades.filter(e=>getPnL(e)>0).length;
   const wr=trades.length?Math.round(wins/trades.length*100):0;
-  const avgW=wins?parseFloat(trades.filter(e=>(e.net_pnl||e.pnl)>0).reduce((s,e)=>s+(e.net_pnl||e.pnl),0)/wins).toFixed(2):0;
+  const avgW=wins?parseFloat(trades.filter(e=>getPnL(e)>0).reduce((s,e)=>s+getPnL(e),0)/wins).toFixed(2):0;
 
   const tagColors={call:'#05d68d',put:'#f0466a',long:'#05d68d',short:'#f0466a',etf:'#4c8dff',stock:'#a855f7'};
 
