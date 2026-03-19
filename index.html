@@ -1578,6 +1578,12 @@ function openAddPosition(){
 function openAddDividend(){openModal('modal-dividend');}
 const KET_RATE=0.25, SOLI_RATE=0.055, FEE=1.0;
 function calcTax(gain){
+  // On a loss: no Kapitalertragsteuer or Soli — only the €1 transaction fee
+  if(gain<=0){
+    const total=FEE;
+    const net=parseFloat((gain-total).toFixed(2));
+    return {ket:0,soli:0,total,net};
+  }
   const ket=parseFloat((gain*KET_RATE).toFixed(2));
   const soli=parseFloat((ket*SOLI_RATE).toFixed(2));
   const total=parseFloat((ket+soli+FEE).toFixed(2));
@@ -1591,13 +1597,14 @@ function updateNetPreview(){
   const isTrade=currentCategory==='trade';
   if(pnl===0||!isTrade){preview.style.display='none';return;}
   const {ket,soli,net}=calcTax(pnl);
+  const isLoss=pnl<0;
   preview.style.display='block';
   document.getElementById('preview-gross').textContent=fmtE(pnl,false);
-  // Show/hide tax lines based on grossMode
+  // On a loss: hide KET/Soli rows, only show the €1 fee row
   const ketRow=document.getElementById('preview-ket-row');
   const soliRow=document.getElementById('preview-soli-row');
-  if(ketRow)ketRow.style.display=grossMode?'none':'flex';
-  if(soliRow)soliRow.style.display=grossMode?'none':'flex';
+  if(ketRow)ketRow.style.display=(grossMode||isLoss)?'none':'flex';
+  if(soliRow)soliRow.style.display=(grossMode||isLoss)?'none':'flex';
   const feeRow=document.getElementById('preview-fee-row');
   if(feeRow)feeRow.style.display=grossMode?'none':'flex';
   document.getElementById('preview-ket').textContent='−'+fmtE(ket,false);
@@ -2142,21 +2149,21 @@ function renderGoals(){
   const tradedWksSet=new Set(sorted.map(e=>{const wi=getWeekNum(e.date);return wi.year+'-W'+String(wi.week).padStart(2,'0');}));
   const avgW=tradedWksSet.size>0?sorted.reduce((s,e)=>s+getPnL(e),0)/tradedWksSet.size:0;
 
-  // Yearly goal bar
-  const pct=Math.max(0,Math.min(100,(totalRealPnL/goal.total)*100));
+  // Yearly goal bar — clamp display between 0-100% but keep negative as 0 width
+  const pct=Math.min(100,(totalRealPnL/goal.total)*100);
   const bc=pct>=100?'#05d68d':pct>=50?'#05d68d':pct>=25?'#f5a623':'#f0466a';
   const gGoalEarned=document.getElementById('g-goal-earned');
   const gGoalPct=document.getElementById('g-goal-pct');
   const gGbar=document.getElementById('g-gbar');
   const gGoalRemaining=document.getElementById('g-goal-remaining');
-  if(gGoalEarned)gGoalEarned.textContent=fmtE(totalRealPnL,false);
+  if(gGoalEarned){gGoalEarned.textContent=fmtE(totalRealPnL,false);gGoalEarned.style.color=totalRealPnL<0?'#f0466a':'';}
   if(gGoalPct){gGoalPct.textContent=pct.toFixed(1)+'%';gGoalPct.style.color=bc;}
-  if(gGbar){gGbar.style.width=pct.toFixed(1)+'%';gGbar.style.background=bc;}
-  if(gGoalRemaining)gGoalRemaining.textContent=fmtE(Math.max(0,goal.total-totalRealPnL),false)+' left  ·  by '+goal.deadline;
+  if(gGbar){gGbar.style.width=Math.max(0,pct).toFixed(1)+'%';gGbar.style.background=bc;}
+  if(gGoalRemaining)gGoalRemaining.textContent=totalRealPnL<0?fmtE(goal.total-totalRealPnL,false)+' left  ·  by '+goal.deadline:fmtE(Math.max(0,goal.total-totalRealPnL),false)+' left  ·  by '+goal.deadline;
 
   // Update navbar goal display
   document.getElementById('sf-goal-text').textContent=fmtE(totalRealPnL,false)+' / '+goal.total.toLocaleString('de-DE')+' €';
-  document.getElementById('sf-bar').style.width=pct.toFixed(1)+'%';
+  document.getElementById('sf-bar').style.width=Math.max(0,pct).toFixed(1)+'%';
   document.getElementById('sf-bar').style.background=bc;
 
   // Projection
